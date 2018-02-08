@@ -1,0 +1,12 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+/out
+test.mv.db
+test.trace.db
+config.json
+secrets.json
