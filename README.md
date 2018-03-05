@@ -54,6 +54,7 @@ These are some features which are planned to be added to Hermes.
 * Messaging the user who configured a webhook if possible when the webhook is misconfigured.
 * Subscribe to specific hermes events.
 * Control your hermes subscription through slack.
+* Add an avatar when a user is registered to display in slack.
 
 ## <a name="TOC-Future"></a>License ##
 
