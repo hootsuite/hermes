@@ -12,6 +12,7 @@ object Users : IntIdTable() {
     val githubName = varchar("githubName", 50).index()
     val slackName = varchar("slackName", 50)
     val teamName = varchar("teamName", 50)
+    val avatarUrl = varchar("avatarUrl", 200).nullable()
 }
 
 /**
@@ -38,12 +39,13 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var githubName by Users.githubName
     var slackName by Users.slackName
     var teamName by Users.teamName
+    var avatarUrl by Users.avatarUrl
 
     /**
      * Format for viewing as a single String
      * TODO Fix This
      */
-    override fun toString() = "$githubName : $slackName : $teamName"
+    override fun toString() = "$githubName : $slackName : $teamName : ${avatarUrl ?: "No Avatar"}"
 
     companion object : IntEntityClass<User>(Users)
 }

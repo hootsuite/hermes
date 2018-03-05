@@ -11,15 +11,17 @@ data class Attachment(
         val author_name: String? = null,
         val title: String,
         val title_link: String? = null,
-        val text: String
+        val text: String,
+        val thumb_url: String? = null
 )
 
 /**
- * Combination of a Slack hook url and a slack username
+ * Combination of a Slack hook url, slack username, and an optional Avatar
  */
 data class SlackUser(
         val name: String,
-        val slackUrl: String
+        val slackUrl: String,
+        val avatarUrl: String? = null
 )
 
 /**

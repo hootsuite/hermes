@@ -6,7 +6,8 @@ package com.hootsuite.hermes.models
 data class UserDTO(
         val githubName: String,
         val slackName: String,
-        val teamName: String
+        val teamName: String,
+        val avatarUrl: String? = null
 )
 
 /**

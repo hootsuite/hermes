@@ -67,7 +67,7 @@ data class StatusEvent(
 data class PingEvent(
         val zen: String,
         val hook: Webhook,
-        val repository: Repository,
+        val repository: Repository?,
         val sender: User
 )
 

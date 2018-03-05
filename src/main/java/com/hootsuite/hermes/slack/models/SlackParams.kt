@@ -21,9 +21,10 @@ data class SlackParams(
          * @param reviewer - The Reviewer of the Pull Request
          * @param author - The Author of the Pull Request
          * @param url - The http URL of the Pull Request
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun approval(reviewer: String, author: String, url: String) = SlackParams(
+        fun approval(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
                 iconEmoji = ":thumbsup:",
                 attachments = arrayOf(Attachment(
                         fallback = "$reviewer}approved PR authored by $author.",
@@ -31,7 +32,8 @@ data class SlackParams(
                         author_name = reviewer,
                         title = "Pull Request Approved: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$author>, your PR has been approved.")),
+                        text = "<$author>, your PR has been approved.",
+                        thumb_url = avatarUrl)),
                 linkNames = 1)
 
         /**
@@ -40,9 +42,14 @@ data class SlackParams(
          * @param author - The Author of the Pull Request
          * @param url - The http URL of the Pull Request
          * @param comment - The comment on the Review
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun requestChanges(reviewer: String, author: String, url: String, comment: String) = SlackParams(
+        fun requestChanges(reviewer: String,
+                           author: String,
+                           url: String,
+                           comment: String,
+                           avatarUrl: String?) = SlackParams(
                 iconEmoji = ":no_entry:",
                 attachments = arrayOf(Attachment(
                         fallback = "$reviewer - Changes Requested for $author.",
@@ -50,7 +57,8 @@ data class SlackParams(
                         author_name = reviewer,
                         title = "PR Changes Requested: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$author>, changes have been requested to your PR.\n$comment")),
+                        text = "<$author>, changes have been requested to your PR.\n$comment",
+                        thumb_url = avatarUrl)),
                 linkNames = 1)
 
         /**
@@ -59,16 +67,22 @@ data class SlackParams(
          * @param author - The Author of the Pull Request
          * @param url - The http URL of the Pull Request
          * @param title - The title of the Pull Request
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun requestReviewer(reviewer: String, author: String, url: String, title: String) = SlackParams(
+        fun requestReviewer(reviewer: String,
+                            author: String,
+                            url: String,
+                            title: String,
+                            avatarUrl: String?) = SlackParams(
                 attachments = arrayOf(Attachment(
                         fallback = "$reviewer: $author has requested your review on a Pull Request.",
                         color = "#439FE0",
                         author_name = author,
                         title = "Review Requested: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$reviewer>: $author has requested your review on a Pull Request.\n$title")),
+                        text = "<$reviewer>: $author has requested your review on a Pull Request.\n$title",
+                        thumb_url = avatarUrl)),
                 linkNames = 1)
 
         /**
@@ -76,16 +90,18 @@ data class SlackParams(
          * @param reviewer - The Requested Reviewer of the Pull Request
          * @param author - The Author of the Pull Request
          * @param url - The http URL of the Pull Request
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun rerequestReviewer(reviewer: String, author: String, url: String) = SlackParams(
+        fun rerequestReviewer(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
                 attachments = arrayOf(Attachment(
                         fallback = "$reviewer: $author has updated their Pull Request.",
                         color = "#439FE0",
                         author_name = author,
                         title = "Please take another look: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$reviewer>: $author has requested another look at the Pull Request.")),
+                        text = "<$reviewer>: $author has requested another look at the Pull Request.",
+                        thumb_url = avatarUrl)),
                 linkNames = 1)
 
         /**
@@ -94,16 +110,22 @@ data class SlackParams(
          * @param targetUrl - The targetUrl from the failing status
          * @param repoName - The full repo name (Org and Repo) with the failing commit
          * @param commitUrl - The Html URL of the failing commit
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun buildFailure(author: String, targetUrl: String, repoName: String, commitUrl: String) = SlackParams(
+        fun buildFailure(author: String,
+                         targetUrl: String,
+                         repoName: String,
+                         commitUrl: String,
+                         avatarUrl: String?) = SlackParams(
                 iconEmoji = ":boom:",
                 attachments = arrayOf(Attachment(
                         fallback = "$author: Your commit failed to build",
                         color = "danger",
                         title = "$author: Your Commit Failed to Build - $repoName",
                         title_link = commitUrl,
-                        text = "<$author>: Your commit failed to build.\n$targetUrl")),
+                        text = "<$author>: Your commit failed to build.\n$targetUrl",
+                        thumb_url = avatarUrl)),
                 linkNames = 1)
 
         /**
@@ -111,28 +133,32 @@ data class SlackParams(
          * @param githubName - The github login of the User
          * @param slackName - The slack name of the User
          * @param teamName - The Hermes team name of the user
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun createUser(githubName: String, slackName: String, teamName: String) = SlackParams(
+        fun createUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?) = SlackParams(
                 attachments = arrayOf(Attachment(
                         fallback = "$githubName has registered.",
                         color = "#00FF00",
                         title = "$githubName has registered.",
-                        text = "$githubName: Slack: $slackName, Team: $teamName")))
+                        text = "$githubName: Slack: $slackName, Team: $teamName",
+                        thumb_url = avatarUrl)))
 
         /**
          * Format a User Updated Message for Slack
          * @param githubName - The github login of the User
          * @param slackName - The slack name of the User
          * @param teamName - The Hermes team name of the user
+         * * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun updateUser(githubName: String, slackName: String, teamName: String) = SlackParams(
+        fun updateUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?) = SlackParams(
                 attachments = arrayOf(Attachment(
                         fallback = "$githubName has updated their information",
                         color = "#0000FF",
                         title = "$githubName has updated their information",
-                        text = "$githubName: Slack: $slackName, Team: $teamName")))
+                        text = "$githubName: Slack: $slackName, Team: $teamName",
+                        thumb_url = avatarUrl)))
 
         /**
          * Format a Team Created Message for Slack
