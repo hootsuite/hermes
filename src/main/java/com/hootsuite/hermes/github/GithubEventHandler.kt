@@ -129,7 +129,7 @@ object GithubEventHandler {
                 zen = pingEvent.zen,
                 missingEvents = missingEvents,
                 extraEvents = extraEvents,
-                repoName = pingEvent.repository.fullName,
+                repoName = pingEvent.repository?.fullName ?: "Organization",
                 sender = pingEvent.sender.login,
                 adminUrl = Config.SLACK_ADMIN_URL)
     }

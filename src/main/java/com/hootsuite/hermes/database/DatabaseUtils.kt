@@ -55,7 +55,7 @@ object DatabaseUtils {
             } else {
                 // TODO Where should we handle '@'? Currently it's on registration
                 // TODO could be used to disable notifications
-                SlackUser(user.slackName, team.slackUrl)
+                SlackUser(user.slackName, team.slackUrl, user.avatarUrl)
             }
         }
     }
@@ -72,21 +72,25 @@ object DatabaseUtils {
             if (existingUser != null) {
                 existingUser.slackName = formatSlackHandle(user.slackName)
                 existingUser.teamName = user.teamName
+                existingUser.avatarUrl = existingUser.avatarUrl
                 SlackMessageHandler.updateUser(
                         user.githubName,
                         user.slackName,
                         user.teamName,
+                        user.avatarUrl,
                         Config.SLACK_ADMIN_URL)
             } else {
                 User.new {
                     githubName = user.githubName
                     slackName = formatSlackHandle(user.slackName)
                     teamName = user.teamName
+                    avatarUrl = user.avatarUrl
                 }
                 SlackMessageHandler.createUser(
                         user.githubName,
                         user.slackName,
                         user.teamName,
+                        user.avatarUrl,
                         Config.SLACK_ADMIN_URL)
             }
         }

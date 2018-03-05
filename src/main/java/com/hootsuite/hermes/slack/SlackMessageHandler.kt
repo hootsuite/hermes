@@ -35,7 +35,7 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      */
     fun approval(reviewer: String, author: SlackUser, url: String) {
-        val params = SlackParams.approval(reviewer, author.name, url)
+        val params = SlackParams.approval(reviewer, author.name, url, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
 
@@ -47,7 +47,7 @@ object SlackMessageHandler {
      * @param comment - Review
      */
     fun requestChanges(reviewer: String, author: SlackUser, url: String, comment: String) {
-        val params = SlackParams.requestChanges(reviewer, author.name, url, comment)
+        val params = SlackParams.requestChanges(reviewer, author.name, url, comment, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
 
@@ -59,7 +59,7 @@ object SlackMessageHandler {
      * @param title - The title of the Pull Request
      */
     fun requestReviewer(reviewer: SlackUser, author: String, url: String, title: String) {
-        val params = SlackParams.requestReviewer(reviewer.name, author, url, title)
+        val params = SlackParams.requestReviewer(reviewer.name, author, url, title, reviewer.avatarUrl)
         sendToSlack(reviewer.slackUrl, params)
     }
 
@@ -70,7 +70,7 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      */
     fun rerequestReviewer(reviewer: SlackUser, author: String, url: String) {
-        val params = SlackParams.rerequestReviewer(reviewer.name, author, url)
+        val params = SlackParams.rerequestReviewer(reviewer.name, author, url, reviewer.avatarUrl)
         sendToSlack(reviewer.slackUrl, params)
     }
 
@@ -82,7 +82,7 @@ object SlackMessageHandler {
      * @param commitUrl - The Html URL of the failing commit
      */
     fun buildFailure(author: SlackUser, targetUrl: String, repoName: String, commitUrl: String) {
-        val params = SlackParams.buildFailure(author.name, targetUrl, repoName, commitUrl)
+        val params = SlackParams.buildFailure(author.name, targetUrl, repoName, commitUrl, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
 
@@ -94,9 +94,10 @@ object SlackMessageHandler {
      * @param slackName - The slack name of the User
      * @param teamName - The Hermes team name of the user
      * @param adminUrl - The slack URL to send the status message to
+     * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
      */
-    fun createUser(githubName: String, slackName: String, teamName: String, adminUrl: String) {
-        val params = SlackParams.createUser(githubName, slackName, teamName)
+    fun createUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?, adminUrl: String) {
+        val params = SlackParams.createUser(githubName, slackName, teamName, avatarUrl)
         sendToSlack(adminUrl, params)
     }
 
@@ -106,9 +107,10 @@ object SlackMessageHandler {
      * @param slackName - The slack name of the User
      * @param teamName - The Hermes team name of the user
      * @param adminUrl - The slack URL to send the status message to
+     * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
      */
-    fun updateUser(githubName: String, slackName: String, teamName: String, adminUrl: String) {
-        val params = SlackParams.updateUser(githubName, slackName, teamName)
+    fun updateUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?, adminUrl: String) {
+        val params = SlackParams.updateUser(githubName, slackName, teamName, avatarUrl)
         sendToSlack(adminUrl, params)
     }
 

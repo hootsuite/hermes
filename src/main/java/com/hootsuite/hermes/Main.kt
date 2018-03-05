@@ -148,7 +148,8 @@ suspend fun registerUserGet(call: ApplicationCall) {
         call.respondText("Please input your team name")
         return
     }
-    DatabaseUtils.createOrUpdateUser(UserDTO(githubName, slackName, teamName))
+    val avatarUrl = call.parameters["avatarUrl"]
+    DatabaseUtils.createOrUpdateUser(UserDTO(githubName, slackName, teamName, avatarUrl))
     // TODO Handle Problems
     call.respondText("User Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
 }
