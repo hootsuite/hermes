@@ -65,6 +65,7 @@ data class SlackParams(
          * Format a Review Request Message for Slack
          * @param reviewer - The Requested Reviewer of the Pull Request
          * @param author - The Author of the Pull Request
+         * @param sender - The User who send the review Request
          * @param url - The http URL of the Pull Request
          * @param title - The title of the Pull Request
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
@@ -72,6 +73,7 @@ data class SlackParams(
          */
         fun requestReviewer(reviewer: String,
                             author: String,
+                            sender: String?,
                             url: String,
                             title: String,
                             avatarUrl: String?) = SlackParams(
@@ -81,7 +83,7 @@ data class SlackParams(
                         author_name = author,
                         title = "Review Requested: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$reviewer>: $author has requested your review on a Pull Request.\n$title",
+                        text = "<$reviewer>: ${sender ?: author} has requested your review on a Pull Request.\n$title",
                         thumb_url = avatarUrl)),
                 linkNames = 1)
 

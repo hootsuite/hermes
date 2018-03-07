@@ -65,6 +65,7 @@ object GithubEventHandler {
                         SlackMessageHandler.requestReviewer(
                                 reviewer = slackUser,
                                 author = pullRequestEvent.pullRequest.user.login,
+                                sender = pullRequestEvent.sender?.login,
                                 url = pullRequestEvent.pullRequest.htmlUrl,
                                 title = pullRequestEvent.pullRequest.title)
                     }
