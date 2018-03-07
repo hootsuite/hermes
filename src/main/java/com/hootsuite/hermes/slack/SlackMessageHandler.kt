@@ -55,6 +55,7 @@ object SlackMessageHandler {
      * Send a Pull Request Review Request Message to Slack
      * @param reviewer - The Reviewer of the Pull Request
      * @param author - The Author of the Pull Request
+     * @param sender - The User who sent the review request
      * @param url - The http URL of the Pull Request
      * @param title - The title of the Pull Request
      */
