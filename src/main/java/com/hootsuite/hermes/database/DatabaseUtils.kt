@@ -72,7 +72,7 @@ object DatabaseUtils {
             if (existingUser != null) {
                 existingUser.slackName = formatSlackHandle(user.slackName)
                 existingUser.teamName = user.teamName
-                existingUser.avatarUrl = existingUser.avatarUrl
+                existingUser.avatarUrl = user.avatarUrl
                 SlackMessageHandler.updateUser(
                         user.githubName,
                         user.slackName,
