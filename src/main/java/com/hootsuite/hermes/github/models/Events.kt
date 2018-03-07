@@ -40,7 +40,8 @@ data class PullRequestEvent(
         @SerializedName("pull_request")
         val pullRequest: PullRequest,
         @SerializedName("requested_reviewer")
-        val requestedReviewer: User? = null)
+        val requestedReviewer: User? = null,
+        val sender: User? = null)
 
 /**
  * Github API Event for a Pull Request Review
