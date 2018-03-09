@@ -28,48 +28,52 @@ enum class SupportedEvents(val eventName: String) {
  * Github API Event for an Issue Comment
  */
 data class IssueCommentEvent(
-        val action: IssueCommentAction,
-        val issue: Issue,
-        val comment: Comment)
+    val action: IssueCommentAction,
+    val issue: Issue,
+    val comment: Comment
+)
 
 /**
  * Github API Event for a Pull Request
  */
 data class PullRequestEvent(
-        val action: PullRequestAction,
-        @SerializedName("pull_request")
-        val pullRequest: PullRequest,
-        @SerializedName("requested_reviewer")
-        val requestedReviewer: User? = null,
-        val sender: User? = null)
+    val action: PullRequestAction,
+    @SerializedName("pull_request")
+    val pullRequest: PullRequest,
+    @SerializedName("requested_reviewer")
+    val requestedReviewer: User? = null,
+    val sender: User? = null
+)
 
 /**
  * Github API Event for a Pull Request Review
  */
 data class PullRequestReviewEvent(
-        val action: PullRequestReviewAction,
-        val review: Review,
-        @SerializedName("pull_request")
-        val pullRequest: PullRequest)
+    val action: PullRequestReviewAction,
+    val review: Review,
+    @SerializedName("pull_request")
+    val pullRequest: PullRequest
+)
 
 /**
  * Github API Event for a Status Update
  */
 data class StatusEvent(
-        val state: StatusState,
-        val commit: Commit,
-        val repository: Repository,
-        @SerializedName("target_url")
-        val targetUrl: String)
+    val state: StatusState,
+    val commit: Commit,
+    val repository: Repository,
+    @SerializedName("target_url")
+    val targetUrl: String
+)
 
 /**
  * Github API Event for a Ping. Sent when registering a new webhook
  */
 data class PingEvent(
-        val zen: String,
-        val hook: Webhook,
-        val repository: Repository?,
-        val sender: User
+    val zen: String,
+    val hook: Webhook,
+    val repository: Repository?,
+    val sender: User
 )
 
 /**

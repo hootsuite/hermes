@@ -47,10 +47,11 @@ object DatabaseUtils {
             val team = Team.find { Teams.teamName eq user.teamName }.firstOrNull()
             if (team == null) {
                 SlackMessageHandler.missingTeam(
-                        user.githubName,
-                        user.slackName,
-                        user.teamName,
-                        Config.SLACK_ADMIN_URL)
+                    user.githubName,
+                    user.slackName,
+                    user.teamName,
+                    Config.SLACK_ADMIN_URL
+                )
                 null
             } else {
                 // TODO Where should we handle '@'? Currently it's on registration
@@ -74,11 +75,12 @@ object DatabaseUtils {
                 existingUser.teamName = user.teamName
                 existingUser.avatarUrl = user.avatarUrl
                 SlackMessageHandler.updateUser(
-                        user.githubName,
-                        user.slackName,
-                        user.teamName,
-                        user.avatarUrl,
-                        Config.SLACK_ADMIN_URL)
+                    user.githubName,
+                    user.slackName,
+                    user.teamName,
+                    user.avatarUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             } else {
                 User.new {
                     githubName = user.githubName
@@ -87,11 +89,12 @@ object DatabaseUtils {
                     avatarUrl = user.avatarUrl
                 }
                 SlackMessageHandler.createUser(
-                        user.githubName,
-                        user.slackName,
-                        user.teamName,
-                        user.avatarUrl,
-                        Config.SLACK_ADMIN_URL)
+                    user.githubName,
+                    user.slackName,
+                    user.teamName,
+                    user.avatarUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             }
         }
     }
@@ -108,18 +111,20 @@ object DatabaseUtils {
             if (existingTeam != null) {
                 existingTeam.slackUrl = team.slackUrl
                 SlackMessageHandler.updateTeam(
-                        team.teamName,
-                        team.slackUrl,
-                        Config.SLACK_ADMIN_URL)
+                    team.teamName,
+                    team.slackUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             } else {
                 Team.new {
                     teamName = team.teamName
                     slackUrl = team.slackUrl
                 }
                 SlackMessageHandler.createTeam(
-                        team.teamName,
-                        team.slackUrl,
-                        Config.SLACK_ADMIN_URL)
+                    team.teamName,
+                    team.slackUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             }
         }
     }

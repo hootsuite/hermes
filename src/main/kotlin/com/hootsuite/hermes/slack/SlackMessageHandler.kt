@@ -17,13 +17,13 @@ object SlackMessageHandler {
      */
     private fun sendToSlack(url: String, params: SlackParams) {
         Fuel
-                .post(url)
-                .body(Gson().toJson(params))
-                .response { _, response, result ->
-                    println(response)
-                    println(result)
-                    //TODO Handle Response and Result
-                }
+            .post(url)
+            .body(Gson().toJson(params))
+            .response { _, response, result ->
+                println(response)
+                println(result)
+                //TODO Handle Response and Result
+            }
     }
 
     // User Messages
@@ -61,12 +61,13 @@ object SlackMessageHandler {
      */
     fun requestReviewer(reviewer: SlackUser, author: String, sender: String?, url: String, title: String) {
         val params = SlackParams.requestReviewer(
-                reviewer.name,
-                author,
-                sender,
-                url,
-                title,
-                reviewer.avatarUrl)
+            reviewer.name,
+            author,
+            sender,
+            url,
+            title,
+            reviewer.avatarUrl
+        )
         sendToSlack(reviewer.slackUrl, params)
     }
 
@@ -185,12 +186,14 @@ object SlackMessageHandler {
      * @param sender - The person who configured the webhook
      * @param adminUrl - The Admin URL to send the message to
      */
-    fun ping(zen: String,
-             missingEvents: List<String>,
-             extraEvents: List<String>,
-             repoName: String,
-             sender: String,
-             adminUrl: String) {
+    fun ping(
+        zen: String,
+        missingEvents: List<String>,
+        extraEvents: List<String>,
+        repoName: String,
+        sender: String,
+        adminUrl: String
+    ) {
         val params = SlackParams.ping(zen, missingEvents, extraEvents, repoName, sender)
         sendToSlack(adminUrl, params)
     }

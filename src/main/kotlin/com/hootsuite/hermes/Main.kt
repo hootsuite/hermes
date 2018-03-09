@@ -220,8 +220,8 @@ suspend fun reviewRequestsGet(call: ApplicationCall) {
  */
 suspend fun installGet(call: ApplicationCall) {
     val (_, response, result) = Config.SLACK_AUTH_URL
-            .httpGet(createSlackQueryParams(call.request.queryParameters["code"]))
-            .responseObject<SlackAuth>()
+        .httpGet(createSlackQueryParams(call.request.queryParameters["code"]))
+        .responseObject<SlackAuth>()
 
     if (response.statusCode == HttpStatusCode.OK.value) {
         val (slackAuth, _) = result
@@ -232,10 +232,11 @@ suspend fun installGet(call: ApplicationCall) {
                 val config = Config.configData
                 // TODO Should there be specific setters?
                 Config.configData = ConfigData(
-                        webhook.url,
-                        config.serverPort,
-                        config.adminChannel,
-                        config.rereviewCommand)
+                    webhook.url,
+                    config.serverPort,
+                    config.adminChannel,
+                    config.rereviewCommand
+                )
                 call.respondText("Admin Channel Registered", ContentType.Text.Plain, HttpStatusCode.OK)
             } else {
                 DatabaseUtils.createOrUpdateTeam(TeamDTO(webhook.channel, webhook.url))
@@ -253,6 +254,7 @@ suspend fun installGet(call: ApplicationCall) {
  * @param code The code parameter to include in the query parameters
  */
 private fun createSlackQueryParams(code: String?): List<Pair<String, String>> = listOf(
-        "code" to code.toString(),
-        "client_id" to Config.authData.clientId,
-        "client_secret" to Config.authData.secret)
+    "code" to code.toString(),
+    "client_id" to Config.authData.clientId,
+    "client_secret" to Config.authData.secret
+)

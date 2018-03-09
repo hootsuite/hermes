@@ -2,9 +2,9 @@ group 'com.hootsuite'
 version '0.0.1'
 
 buildscript {
-    ext.kotlin_version = '1.2.0'
-    ext.ktor_version = '0.9.0'
-    ext.fuel_version = '1.12.0'
+    ext.kotlin_version = '1.2.30'
+    ext.ktor_version = '0.9.1'
+    ext.fuel_version = '1.12.1'
 
     repositories {
         mavenCentral()
@@ -60,7 +60,7 @@ dependencies {
     compile "ch.qos.logback:logback-classic:1.2.1"
 
     // Exposed for Database
-    compile 'org.jetbrains.exposed:exposed:0.9.1'
+    compile 'org.jetbrains.exposed:exposed:0.10.1'
     compile 'com.h2database:h2:1.4.196'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
