@@ -15,10 +15,10 @@ object Config {
     const val SLACK_AUTH_URL = "https://slack.com/api/oauth.access"
 
     var configData: ConfigData = Gson().fromJson<ConfigData>(File(CONFIG_PATH).readText(), ConfigData::class.java)
-    set(value) {
-        File(CONFIG_PATH).writeText(GsonBuilder().setPrettyPrinting().create().toJson(value))
-        field = value
-    }
+        set(value) {
+            File(CONFIG_PATH).writeText(GsonBuilder().setPrettyPrinting().create().toJson(value))
+            field = value
+        }
 
     val authData: AuthData = Gson().fromJson<AuthData>(File(SECRETS_PATH).readText(), AuthData::class.java)
 
@@ -62,14 +62,16 @@ object Config {
  * Data class for the config.json file
  */
 data class ConfigData(
-        val adminUrl: String,
-        val serverPort: Int,
-        val adminChannel: String ,
-        val rereviewCommand: String)
+    val adminUrl: String,
+    val serverPort: Int,
+    val adminChannel: String,
+    val rereviewCommand: String
+)
 
 /**
  * Auth Data for authorizing with slack
  */
 data class AuthData(
-        val clientId: String,
-        val secret: String)
+    val clientId: String,
+    val secret: String
+)

@@ -2,18 +2,18 @@ package com.hootsuite.hermes.github
 
 import com.hootsuite.hermes.Config
 import com.hootsuite.hermes.database.DatabaseUtils
-import com.hootsuite.hermes.github.models.ApprovalState
-import com.hootsuite.hermes.github.models.IssueCommentAction
-import com.hootsuite.hermes.github.models.IssueCommentEvent
-import com.hootsuite.hermes.github.models.PingEvent
-import com.hootsuite.hermes.github.models.PullRequestAction
-import com.hootsuite.hermes.github.models.PullRequestEvent
-import com.hootsuite.hermes.github.models.PullRequestReviewAction
-import com.hootsuite.hermes.github.models.PullRequestReviewEvent
-import com.hootsuite.hermes.github.models.StatusEvent
-import com.hootsuite.hermes.github.models.StatusState
-import com.hootsuite.hermes.github.models.SupportedEvents
-import com.hootsuite.hermes.models.ReviewRequestDTO
+import com.hootsuite.hermes.github.model.ApprovalState
+import com.hootsuite.hermes.github.model.IssueCommentAction
+import com.hootsuite.hermes.github.model.IssueCommentEvent
+import com.hootsuite.hermes.github.model.PingEvent
+import com.hootsuite.hermes.github.model.PullRequestAction
+import com.hootsuite.hermes.github.model.PullRequestEvent
+import com.hootsuite.hermes.github.model.PullRequestReviewAction
+import com.hootsuite.hermes.github.model.PullRequestReviewEvent
+import com.hootsuite.hermes.github.model.StatusEvent
+import com.hootsuite.hermes.github.model.StatusState
+import com.hootsuite.hermes.github.model.SupportedEvents
+import com.hootsuite.hermes.models.ReviewRequest
 import com.hootsuite.hermes.slack.SlackMessageHandler
 
 /**
@@ -30,14 +30,16 @@ object GithubEventHandler {
             when (pullRequestReviewEvent.action) {
                 PullRequestReviewAction.SUBMITTED -> when (pullRequestReviewEvent.review.state) {
                     ApprovalState.APPROVED -> SlackMessageHandler.approval(
-                            reviewer = pullRequestReviewEvent.review.user.login,
-                            author = slackUser,
-                            url = pullRequestReviewEvent.pullRequest.htmlUrl)
+                        reviewer = pullRequestReviewEvent.review.user.login,
+                        author = slackUser,
+                        url = pullRequestReviewEvent.pullRequest.htmlUrl
+                    )
                     ApprovalState.CHANGES_REQUESTED -> SlackMessageHandler.requestChanges(
-                            reviewer = pullRequestReviewEvent.review.user.login,
-                            author = slackUser,
-                            url = pullRequestReviewEvent.pullRequest.htmlUrl,
-                            comment = pullRequestReviewEvent.review.body)
+                        reviewer = pullRequestReviewEvent.review.user.login,
+                        author = slackUser,
+                        url = pullRequestReviewEvent.pullRequest.htmlUrl,
+                        comment = pullRequestReviewEvent.review.body
+                    )
                     ApprovalState.COMMENTED -> {
                         // TODO What do we want to do here?
                     }
@@ -56,19 +58,23 @@ object GithubEventHandler {
     fun pullRequest(pullRequestEvent: PullRequestEvent) {
         when (pullRequestEvent.action) {
             PullRequestAction.REVIEW_REQUESTED -> pullRequestEvent.requestedReviewer
-                    ?.let { DatabaseUtils.getSlackUserOrNull(it.login) }
-                    ?.let { slackUser ->
-                        // TODO Need to clean these up when we get a PR closed event
-                        DatabaseUtils.createOrUpdateReviewRequest(ReviewRequestDTO(
-                                pullRequestEvent.pullRequest.htmlUrl,
-                                pullRequestEvent.requestedReviewer.login))
-                        SlackMessageHandler.requestReviewer(
-                                reviewer = slackUser,
-                                author = pullRequestEvent.pullRequest.user.login,
-                                sender = pullRequestEvent.sender?.login,
-                                url = pullRequestEvent.pullRequest.htmlUrl,
-                                title = pullRequestEvent.pullRequest.title)
-                    }
+                ?.let { DatabaseUtils.getSlackUserOrNull(it.login) }
+                ?.let { slackUser ->
+                    // TODO Need to clean these up when we get a PR closed event
+                    DatabaseUtils.createOrUpdateReviewRequest(
+                        ReviewRequest(
+                            pullRequestEvent.pullRequest.htmlUrl,
+                            pullRequestEvent.requestedReviewer.login
+                        )
+                    )
+                    SlackMessageHandler.requestReviewer(
+                        reviewer = slackUser,
+                        author = pullRequestEvent.pullRequest.user.login,
+                        sender = pullRequestEvent.sender?.login,
+                        url = pullRequestEvent.pullRequest.htmlUrl,
+                        title = pullRequestEvent.pullRequest.title
+                    )
+                }
             PullRequestAction.CLOSED -> DatabaseUtils.deleteReviewRequest(pullRequestEvent.pullRequest.htmlUrl)
             else -> {
                 // TODO Handle Other actions?
@@ -82,12 +88,14 @@ object GithubEventHandler {
      */
     fun issueComment(issueCommentEvent: IssueCommentEvent) {
         if (issueCommentEvent.action == IssueCommentAction.CREATED &&
-                issueCommentEvent.comment.body == Config.REREVIEW) {
+            issueCommentEvent.comment.body == Config.REREVIEW
+        ) {
             DatabaseUtils.getRereviewers(issueCommentEvent.issue.htmlUrl).forEach {
                 SlackMessageHandler.rerequestReviewer(
-                        reviewer = it,
-                        author = issueCommentEvent.issue.user.login,
-                        url = issueCommentEvent.issue.htmlUrl)
+                    reviewer = it,
+                    author = issueCommentEvent.issue.user.login,
+                    url = issueCommentEvent.issue.htmlUrl
+                )
             }
         } else {
             // TODO Handle Other Actions?
@@ -103,10 +111,11 @@ object GithubEventHandler {
             StatusState.FAILURE, StatusState.ERROR -> {
                 DatabaseUtils.getSlackUserOrNull(statusEvent.commit.author.login)?.let { slackUser ->
                     SlackMessageHandler.buildFailure(
-                            author = slackUser,
-                            targetUrl = statusEvent.targetUrl,
-                            repoName = statusEvent.repository.fullName,
-                            commitUrl = statusEvent.commit.htmlUrl)
+                        author = slackUser,
+                        targetUrl = statusEvent.targetUrl,
+                        repoName = statusEvent.repository.fullName,
+                        commitUrl = statusEvent.commit.htmlUrl
+                    )
                 }
             }
             else -> {
@@ -121,18 +130,19 @@ object GithubEventHandler {
      */
     fun ping(pingEvent: PingEvent) {
         val extraEvents = pingEvent.hook.events
-                .filterNot { it in SupportedEvents.values().map { it.eventName } }
+            .filterNot { it in SupportedEvents.values().map { it.eventName } }
         val missingEvents = SupportedEvents.values()
-                .filterNot { it == SupportedEvents.PING }
-                .map { it.eventName }
-                .filterNot { it in pingEvent.hook.events }
+            .filterNot { it == SupportedEvents.PING }
+            .map { it.eventName }
+            .filterNot { it in pingEvent.hook.events }
         SlackMessageHandler.ping(
-                zen = pingEvent.zen,
-                missingEvents = missingEvents,
-                extraEvents = extraEvents,
-                repoName = pingEvent.repository?.fullName ?: "Organization",
-                sender = pingEvent.sender.login,
-                adminUrl = Config.SLACK_ADMIN_URL)
+            zen = pingEvent.zen,
+            missingEvents = missingEvents,
+            extraEvents = extraEvents,
+            repoName = pingEvent.repository?.fullName ?: "Organization",
+            sender = pingEvent.sender.login,
+            adminUrl = Config.SLACK_ADMIN_URL
+        )
     }
 
     /**

@@ -1,11 +1,17 @@
 package com.hootsuite.hermes.database
 
 import com.hootsuite.hermes.Config
-import com.hootsuite.hermes.models.ReviewRequestDTO
-import com.hootsuite.hermes.models.TeamDTO
-import com.hootsuite.hermes.models.UserDTO
+import com.hootsuite.hermes.database.model.ReviewRequestEntity
+import com.hootsuite.hermes.database.model.ReviewRequests
+import com.hootsuite.hermes.database.model.TeamEntity
+import com.hootsuite.hermes.database.model.Teams
+import com.hootsuite.hermes.database.model.UserEntity
+import com.hootsuite.hermes.database.model.Users
+import com.hootsuite.hermes.model.ReviewRequest
+import com.hootsuite.hermes.model.Team
+import com.hootsuite.hermes.model.User
 import com.hootsuite.hermes.slack.SlackMessageHandler
-import com.hootsuite.hermes.slack.models.SlackUser
+import com.hootsuite.hermes.slack.model.SlackUser
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -39,18 +45,19 @@ object DatabaseUtils {
      * @return SlackUser? The slack user from the database or null if the user or team is missing
      */
     fun getSlackUserOrNull(githubName: String): SlackUser? = transaction {
-        val user = User.find { Users.githubName eq githubName }.firstOrNull()
+        val user = UserEntity.find { Users.githubName eq githubName }.firstOrNull()
         if (user == null) {
             SlackMessageHandler.missingUser(githubName, Config.SLACK_ADMIN_URL)
             null
         } else {
-            val team = Team.find { Teams.teamName eq user.teamName }.firstOrNull()
+            val team = TeamEntity.find { Teams.teamName eq user.teamName }.firstOrNull()
             if (team == null) {
                 SlackMessageHandler.missingTeam(
-                        user.githubName,
-                        user.slackName,
-                        user.teamName,
-                        Config.SLACK_ADMIN_URL)
+                    user.githubName,
+                    user.slackName,
+                    user.teamName,
+                    Config.SLACK_ADMIN_URL
+                )
                 null
             } else {
                 // TODO Where should we handle '@'? Currently it's on registration
@@ -65,33 +72,35 @@ object DatabaseUtils {
      * TODO Handle Problems storing
      * @param user - The User Model Object to be stored
      */
-    fun createOrUpdateUser(user: UserDTO) {
+    fun createOrUpdateUser(user: User) {
         // TODO Extract and make multiple transactions
         transaction {
-            val existingUser = User.find { Users.githubName eq user.githubName }.firstOrNull()
+            val existingUser = UserEntity.find { Users.githubName eq user.githubName }.firstOrNull()
             if (existingUser != null) {
                 existingUser.slackName = formatSlackHandle(user.slackName)
                 existingUser.teamName = user.teamName
                 existingUser.avatarUrl = user.avatarUrl
                 SlackMessageHandler.updateUser(
-                        user.githubName,
-                        user.slackName,
-                        user.teamName,
-                        user.avatarUrl,
-                        Config.SLACK_ADMIN_URL)
+                    user.githubName,
+                    user.slackName,
+                    user.teamName,
+                    user.avatarUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             } else {
-                User.new {
+                UserEntity.new {
                     githubName = user.githubName
                     slackName = formatSlackHandle(user.slackName)
                     teamName = user.teamName
                     avatarUrl = user.avatarUrl
                 }
                 SlackMessageHandler.createUser(
-                        user.githubName,
-                        user.slackName,
-                        user.teamName,
-                        user.avatarUrl,
-                        Config.SLACK_ADMIN_URL)
+                    user.githubName,
+                    user.slackName,
+                    user.teamName,
+                    user.avatarUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             }
         }
     }
@@ -101,25 +110,27 @@ object DatabaseUtils {
      * TODO Handle Problems storing
      * @param team - The Team Model Object to be stored
      */
-    fun createOrUpdateTeam(team: TeamDTO) {
+    fun createOrUpdateTeam(team: Team) {
         // TODO Extract and make multiple Transactions
         transaction {
-            val existingTeam = Team.find { Teams.teamName eq team.teamName }.firstOrNull()
+            val existingTeam = TeamEntity.find { Teams.teamName eq team.teamName }.firstOrNull()
             if (existingTeam != null) {
                 existingTeam.slackUrl = team.slackUrl
                 SlackMessageHandler.updateTeam(
-                        team.teamName,
-                        team.slackUrl,
-                        Config.SLACK_ADMIN_URL)
+                    team.teamName,
+                    team.slackUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             } else {
-                Team.new {
+                TeamEntity.new {
                     teamName = team.teamName
                     slackUrl = team.slackUrl
                 }
                 SlackMessageHandler.createTeam(
-                        team.teamName,
-                        team.slackUrl,
-                        Config.SLACK_ADMIN_URL)
+                    team.teamName,
+                    team.slackUrl,
+                    Config.SLACK_ADMIN_URL
+                )
             }
         }
     }
@@ -129,10 +140,10 @@ object DatabaseUtils {
      * TODO Handle Problems storing
      * @param request - The Review Request to be stored in the database
      */
-    fun createOrUpdateReviewRequest(request: ReviewRequestDTO) = transaction {
-        ReviewRequest.find {
+    fun createOrUpdateReviewRequest(request: ReviewRequest) = transaction {
+        ReviewRequestEntity.find {
             (ReviewRequests.htmlUrl eq request.htmlUrl).and(ReviewRequests.githubName eq request.githubName)
-        }.firstOrNull() ?: ReviewRequest.new {
+        }.firstOrNull() ?: ReviewRequestEntity.new {
             githubName = request.githubName
             htmlUrl = request.htmlUrl
         }
@@ -143,7 +154,7 @@ object DatabaseUtils {
      * @param htmlUrl - The Url of the Pull Request to be deleted
      */
     fun deleteReviewRequest(htmlUrl: String) = transaction {
-        ReviewRequest.find { ReviewRequests.htmlUrl eq htmlUrl }.map { it.delete() }
+        ReviewRequestEntity.find { ReviewRequests.htmlUrl eq htmlUrl }.map { it.delete() }
     }
 
     /**
@@ -152,7 +163,7 @@ object DatabaseUtils {
      * @return List<SlackUser> - A list of slack users reviewing the pull request
      */
     fun getRereviewers(htmlUrl: String): List<SlackUser> = transaction {
-        ReviewRequest.find { ReviewRequests.htmlUrl eq htmlUrl }.mapNotNull { getSlackUserOrNull(it.githubName) }
+        ReviewRequestEntity.find { ReviewRequests.htmlUrl eq htmlUrl }.mapNotNull { getSlackUserOrNull(it.githubName) }
     }
 
     /**

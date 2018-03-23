@@ -1,4 +1,4 @@
-package com.hootsuite.hermes.slack.models
+package com.hootsuite.hermes.slack.model
 
 import com.google.gson.annotations.SerializedName
 import java.util.Arrays
@@ -7,12 +7,12 @@ import java.util.Arrays
  * Parameters to Format Slack Messages
  */
 data class SlackParams(
-        @SerializedName("icon_emoji")
-        val iconEmoji: String? = null,
-        // TODO Override hashcode and equals?
-        val attachments: Array<Attachment>,
-        @SerializedName("link_names")
-        val linkNames: Int = 0
+    @SerializedName("icon_emoji")
+    val iconEmoji: String? = null,
+    // TODO Override hashcode and equals?
+    val attachments: Array<Attachment>,
+    @SerializedName("link_names")
+    val linkNames: Int = 0
 ) {
     companion object {
 
@@ -25,16 +25,20 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun approval(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
-                iconEmoji = ":thumbsup:",
-                attachments = arrayOf(Attachment(
-                        fallback = "$reviewer}approved PR authored by $author.",
-                        color = "#36a64f",
-                        author_name = reviewer,
-                        title = "Pull Request Approved: ${formatUrl(url)}",
-                        title_link = url,
-                        text = "<$author>, your PR has been approved.",
-                        thumb_url = avatarUrl)),
-                linkNames = 1)
+            iconEmoji = ":thumbsup:",
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$reviewer}approved PR authored by $author.",
+                    color = "#36a64f",
+                    author_name = reviewer,
+                    title = "Pull Request Approved: ${formatUrl(url)}",
+                    title_link = url,
+                    text = "<$author>, your PR has been approved.",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
 
         /**
          * Format a Pull Request Request Changes Message for Slack
@@ -45,21 +49,27 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun requestChanges(reviewer: String,
-                           author: String,
-                           url: String,
-                           comment: String,
-                           avatarUrl: String?) = SlackParams(
-                iconEmoji = ":no_entry:",
-                attachments = arrayOf(Attachment(
-                        fallback = "$reviewer - Changes Requested for $author.",
-                        color = "danger",
-                        author_name = reviewer,
-                        title = "PR Changes Requested: ${formatUrl(url)}",
-                        title_link = url,
-                        text = "<$author>, changes have been requested to your PR.\n$comment",
-                        thumb_url = avatarUrl)),
-                linkNames = 1)
+        fun requestChanges(
+            reviewer: String,
+            author: String,
+            url: String,
+            comment: String,
+            avatarUrl: String?
+        ) = SlackParams(
+            iconEmoji = ":no_entry:",
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$reviewer - Changes Requested for $author.",
+                    color = "danger",
+                    author_name = reviewer,
+                    title = "PR Changes Requested: ${formatUrl(url)}",
+                    title_link = url,
+                    text = "<$author>, changes have been requested to your PR.\n$comment",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
 
         /**
          * Format a Review Request Message for Slack
@@ -71,21 +81,27 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun requestReviewer(reviewer: String,
-                            author: String,
-                            sender: String?,
-                            url: String,
-                            title: String,
-                            avatarUrl: String?) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$reviewer: $author has requested your review on a Pull Request.",
-                        color = "#439FE0",
-                        author_name = author,
-                        title = "Review Requested: ${formatUrl(url)}",
-                        title_link = url,
-                        text = "<$reviewer>: ${sender ?: author} has requested your review on a Pull Request.\n$title",
-                        thumb_url = avatarUrl)),
-                linkNames = 1)
+        fun requestReviewer(
+            reviewer: String,
+            author: String,
+            sender: String?,
+            url: String,
+            title: String,
+            avatarUrl: String?
+        ) = SlackParams(
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$reviewer: $author has requested your review on a Pull Request.",
+                    color = "#439FE0",
+                    author_name = author,
+                    title = "Review Requested: ${formatUrl(url)}",
+                    title_link = url,
+                    text = "<$reviewer>: ${sender ?: author} has requested your review on a Pull Request.\n$title",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
 
         /**
          * Format a Review Request Message for Slack
@@ -96,15 +112,19 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun rerequestReviewer(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$reviewer: $author has updated their Pull Request.",
-                        color = "#439FE0",
-                        author_name = author,
-                        title = "Please take another look: ${formatUrl(url)}",
-                        title_link = url,
-                        text = "<$reviewer>: $author has requested another look at the Pull Request.",
-                        thumb_url = avatarUrl)),
-                linkNames = 1)
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$reviewer: $author has updated their Pull Request.",
+                    color = "#439FE0",
+                    author_name = author,
+                    title = "Please take another look: ${formatUrl(url)}",
+                    title_link = url,
+                    text = "<$reviewer>: $author has requested another look at the Pull Request.",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
 
         /**
          * Format a Build Failure Message for Slack
@@ -115,20 +135,26 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun buildFailure(author: String,
-                         targetUrl: String,
-                         repoName: String,
-                         commitUrl: String,
-                         avatarUrl: String?) = SlackParams(
-                iconEmoji = ":boom:",
-                attachments = arrayOf(Attachment(
-                        fallback = "$author: Your commit failed to build",
-                        color = "danger",
-                        title = "$author: Your Commit Failed to Build - $repoName",
-                        title_link = commitUrl,
-                        text = "<$author>: Your commit failed to build.\n$targetUrl",
-                        thumb_url = avatarUrl)),
-                linkNames = 1)
+        fun buildFailure(
+            author: String,
+            targetUrl: String,
+            repoName: String,
+            commitUrl: String,
+            avatarUrl: String?
+        ) = SlackParams(
+            iconEmoji = ":boom:",
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$author: Your commit failed to build",
+                    color = "danger",
+                    title = "$author: Your Commit Failed to Build - $repoName",
+                    title_link = commitUrl,
+                    text = "<$author>: Your commit failed to build.\n$targetUrl",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
 
         /**
          * Format a User Created Message for Slack
@@ -139,12 +165,16 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun createUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$githubName has registered.",
-                        color = "#00FF00",
-                        title = "$githubName has registered.",
-                        text = "$githubName: Slack: $slackName, Team: $teamName",
-                        thumb_url = avatarUrl)))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$githubName has registered.",
+                    color = "#00FF00",
+                    title = "$githubName has registered.",
+                    text = "$githubName: Slack: $slackName, Team: $teamName",
+                    thumb_url = avatarUrl
+                )
+            )
+        )
 
         /**
          * Format a User Updated Message for Slack
@@ -155,12 +185,16 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun updateUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$githubName has updated their information",
-                        color = "#0000FF",
-                        title = "$githubName has updated their information",
-                        text = "$githubName: Slack: $slackName, Team: $teamName",
-                        thumb_url = avatarUrl)))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$githubName has updated their information",
+                    color = "#0000FF",
+                    title = "$githubName has updated their information",
+                    text = "$githubName: Slack: $slackName, Team: $teamName",
+                    thumb_url = avatarUrl
+                )
+            )
+        )
 
         /**
          * Format a Team Created Message for Slack
@@ -169,11 +203,15 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun createTeam(teamName: String, slackUrl: String) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$teamName has been registered",
-                        color = "#00FF00",
-                        title = "$teamName has been registered",
-                        text = "$teamName has registered to Hermes\n$slackUrl.")))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$teamName has been registered",
+                    color = "#00FF00",
+                    title = "$teamName has been registered",
+                    text = "$teamName has registered to Hermes\n$slackUrl."
+                )
+            )
+        )
 
         /**
          * Format a Team Updated Message for Slack
@@ -182,11 +220,15 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun updateTeam(teamName: String, slackUrl: String) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$teamName has been updated",
-                        color = "#0000FF",
-                        title = "$teamName has been updated",
-                        text = "$teamName has been updated\n$slackUrl.")))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$teamName has been updated",
+                    color = "#0000FF",
+                    title = "$teamName has been updated",
+                    text = "$teamName has been updated\n$slackUrl."
+                )
+            )
+        )
 
         /**
          * Format a missing User message for Slack
@@ -194,11 +236,15 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun missingUser(githubName: String) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$githubName is not registered with Hermes",
-                        color = "#FF0000",
-                        title = "$githubName is not Registered",
-                        text = "$githubName is not Registered.")))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$githubName is not registered with Hermes",
+                    color = "#FF0000",
+                    title = "$githubName is not Registered",
+                    text = "$githubName is not Registered."
+                )
+            )
+        )
 
         /**
          * Format a missing team message for Slack
@@ -208,11 +254,15 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun missingTeam(githubName: String, slackName: String, teamName: String) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "$teamName is not registered with Hermes",
-                        color = "#FF0000",
-                        title = "$teamName is not Registered",
-                        text = "$teamName is not Registered. User: $githubName, Slack: $slackName")))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$teamName is not registered with Hermes",
+                    color = "#FF0000",
+                    title = "$teamName is not Registered",
+                    text = "$teamName is not Registered. User: $githubName, Slack: $slackName"
+                )
+            )
+        )
 
         /**
          * Format an unhandled Event message for Slack
@@ -220,11 +270,15 @@ data class SlackParams(
          * @return SlackParams - The params of the formatted slack message
          */
         fun unhandledEvent(eventName: String) = SlackParams(
-                attachments = arrayOf(Attachment(
-                        fallback = "Received Unhandled $eventName event.",
-                        color = "#FF0000",
-                        title = "Unhandled $eventName",
-                        text = "Received Unhandled $eventName event.")))
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "Received Unhandled $eventName event.",
+                    color = "#FF0000",
+                    title = "Unhandled $eventName",
+                    text = "Received Unhandled $eventName event."
+                )
+            )
+        )
 
         /**
          * Format a ping (new webhook registered) message for slack
@@ -234,11 +288,13 @@ data class SlackParams(
          * @param repoName - The full name of the repository where the webhook was registered
          * @param sender - The person who configured the webhook
          */
-        fun ping(zen: String,
-                 missingEvents: List<String>,
-                 extraEvents: List<String>,
-                 repoName: String,
-                 sender: String): SlackParams {
+        fun ping(
+            zen: String,
+            missingEvents: List<String>,
+            extraEvents: List<String>,
+            repoName: String,
+            sender: String
+        ): SlackParams {
             val eventsString = when {
                 missingEvents.isEmpty() && extraEvents.isEmpty() -> "Events registered Correctly\n$zen."
                 missingEvents.isEmpty() && extraEvents.isNotEmpty() ->
@@ -251,11 +307,14 @@ data class SlackParams(
                         Extra Events: ${extraEvents.joinToString(", ")}"""
             }
             return SlackParams(
-                    attachments = arrayOf(Attachment(
-                            fallback = "New webhook registered for $repoName",
-                            color = "0000FF",
-                            title = "New Webhook Registered for $repoName",
-                            text = "$sender registered a webhook\n$eventsString"))
+                attachments = arrayOf(
+                    Attachment(
+                        fallback = "New webhook registered for $repoName",
+                        color = "0000FF",
+                        title = "New Webhook Registered for $repoName",
+                        text = "$sender registered a webhook\n$eventsString"
+                    )
+                )
             )
         }
 
