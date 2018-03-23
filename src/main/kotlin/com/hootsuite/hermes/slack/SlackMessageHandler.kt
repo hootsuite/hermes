@@ -2,8 +2,8 @@ package com.hootsuite.hermes.slack
 
 import com.github.kittinunf.fuel.Fuel
 import com.google.gson.Gson
-import com.hootsuite.hermes.slack.models.SlackParams
-import com.hootsuite.hermes.slack.models.SlackUser
+import com.hootsuite.hermes.slack.model.SlackParams
+import com.hootsuite.hermes.slack.model.SlackUser
 
 /**
  * Object to handle sending various messages to Slack

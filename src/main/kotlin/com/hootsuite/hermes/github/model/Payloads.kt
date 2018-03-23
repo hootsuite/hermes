@@ -1,4 +1,4 @@
-package com.hootsuite.hermes.github.models
+package com.hootsuite.hermes.github.model
 
 import com.google.gson.annotations.SerializedName
 import java.util.Arrays

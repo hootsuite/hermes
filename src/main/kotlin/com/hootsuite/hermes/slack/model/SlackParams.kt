@@ -1,4 +1,4 @@
-package com.hootsuite.hermes.slack.models
+package com.hootsuite.hermes.slack.model
 
 import com.google.gson.annotations.SerializedName
 import java.util.Arrays

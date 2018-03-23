@@ -3,15 +3,15 @@ package com.hootsuite.hermes
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
 import com.hootsuite.hermes.database.DatabaseUtils
-import com.hootsuite.hermes.database.ReviewRequest
-import com.hootsuite.hermes.database.Team
-import com.hootsuite.hermes.database.User
+import com.hootsuite.hermes.database.model.ReviewRequestEntity
+import com.hootsuite.hermes.database.model.TeamEntity
+import com.hootsuite.hermes.database.model.UserEntity
 import com.hootsuite.hermes.github.GithubEventHandler
-import com.hootsuite.hermes.github.models.Events
-import com.hootsuite.hermes.github.models.SupportedEvents
-import com.hootsuite.hermes.models.TeamDTO
-import com.hootsuite.hermes.models.UserDTO
-import com.hootsuite.hermes.slack.models.SlackAuth
+import com.hootsuite.hermes.github.model.Events
+import com.hootsuite.hermes.github.model.SupportedEvents
+import com.hootsuite.hermes.model.Team
+import com.hootsuite.hermes.model.User
+import com.hootsuite.hermes.slack.model.SlackAuth
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
@@ -109,7 +109,7 @@ suspend fun webhookPost(call: ApplicationCall) {
  */
 suspend fun usersGet(call: ApplicationCall) {
     // TODO Some sort of frontend
-    val users = transaction { User.all().joinToString("<br>") { it.toString() } }
+    val users = transaction { UserEntity.all().joinToString("<br>") { it.toString() } }
     val usersHtml = StringBuilder()
     usersHtml.append("<h1>Users</h1><p>")
     usersHtml.append(users)
@@ -122,7 +122,7 @@ suspend fun usersGet(call: ApplicationCall) {
  * @param call - The ApplicationCall for the request
  */
 suspend fun usersPost(call: ApplicationCall) {
-    val user = call.receive<UserDTO>()
+    val user = call.receive<User>()
     DatabaseUtils.createOrUpdateUser(user)
     //TODO Handle problems and Response
 }
@@ -149,7 +149,7 @@ suspend fun registerUserGet(call: ApplicationCall) {
         return
     }
     val avatarUrl = if (call.parameters["avatarUrl"].isNullOrEmpty()) null else call.parameters["avatarUrl"]
-    DatabaseUtils.createOrUpdateUser(UserDTO(githubName, slackName, teamName, avatarUrl))
+    DatabaseUtils.createOrUpdateUser(User(githubName, slackName, teamName, avatarUrl))
     // TODO Handle Problems
     call.respondText("User Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
 }
@@ -160,7 +160,7 @@ suspend fun registerUserGet(call: ApplicationCall) {
  */
 suspend fun teamsGet(call: ApplicationCall) {
     // TODO Some sort of frontend
-    val teams = transaction { Team.all().joinToString("<br>") { it.toString() } }
+    val teams = transaction { TeamEntity.all().joinToString("<br>") { it.toString() } }
     val teamsHtml = StringBuilder()
     teamsHtml.append("<h1>Teams</h1><p>")
     teamsHtml.append(teams)
@@ -173,7 +173,7 @@ suspend fun teamsGet(call: ApplicationCall) {
  * @param call - The ApplicationCall for the request
  */
 suspend fun teamsPost(call: ApplicationCall) {
-    val team = call.receive<TeamDTO>()
+    val team = call.receive<Team>()
     DatabaseUtils.createOrUpdateTeam(team)
     call.respond(HttpStatusCode.OK)
 }
@@ -195,7 +195,7 @@ suspend fun registerTeamGet(call: ApplicationCall) {
         return
     }
     // TODO When we use a POST or a Slack APP, we should be able to use the full URL or the Slack Channel
-    DatabaseUtils.createOrUpdateTeam(TeamDTO(teamName, "https://hooks.slack.com/services/$slackUrl"))
+    DatabaseUtils.createOrUpdateTeam(Team(teamName, "https://hooks.slack.com/services/$slackUrl"))
     // TODO Handle Problems and Response
     call.respondText("Team Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
 }
@@ -206,7 +206,7 @@ suspend fun registerTeamGet(call: ApplicationCall) {
  * TODO For Testing only
  */
 suspend fun reviewRequestsGet(call: ApplicationCall) {
-    val reviewRequests = transaction { ReviewRequest.all().joinToString("<br>") { it.toString() } }
+    val reviewRequests = transaction { ReviewRequestEntity.all().joinToString("<br>") { it.toString() } }
     val teamsHtml = StringBuilder()
     teamsHtml.append("<h1>Review Requests</h1><p>")
     teamsHtml.append(reviewRequests)
@@ -239,7 +239,7 @@ suspend fun installGet(call: ApplicationCall) {
                 )
                 call.respondText("Admin Channel Registered", ContentType.Text.Plain, HttpStatusCode.OK)
             } else {
-                DatabaseUtils.createOrUpdateTeam(TeamDTO(webhook.channel, webhook.url))
+                DatabaseUtils.createOrUpdateTeam(Team(webhook.channel, webhook.url))
                 call.respondText("Team Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
                 // TODO Proper Error Case
             }

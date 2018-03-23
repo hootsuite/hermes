@@ -1,9 +1,9 @@
-package com.hootsuite.hermes.models
+package com.hootsuite.hermes.model
 
 /**
  * DTO Object for a Hermes User
  */
-data class UserDTO(
+data class User(
     val githubName: String,
     val slackName: String,
     val teamName: String,
@@ -13,7 +13,7 @@ data class UserDTO(
 /**
  * DTO Object for a Hermes Team
  */
-data class TeamDTO(
+data class Team(
     val teamName: String,
     val slackUrl: String
 )
@@ -21,7 +21,7 @@ data class TeamDTO(
 /**
  * DTO Object for a Hermes Review Request
  */
-data class ReviewRequestDTO(
+data class ReviewRequest(
     var htmlUrl: String,
     var githubName: String
 )

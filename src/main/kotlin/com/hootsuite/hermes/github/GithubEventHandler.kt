@@ -2,18 +2,18 @@ package com.hootsuite.hermes.github
 
 import com.hootsuite.hermes.Config
 import com.hootsuite.hermes.database.DatabaseUtils
-import com.hootsuite.hermes.github.models.ApprovalState
-import com.hootsuite.hermes.github.models.IssueCommentAction
-import com.hootsuite.hermes.github.models.IssueCommentEvent
-import com.hootsuite.hermes.github.models.PingEvent
-import com.hootsuite.hermes.github.models.PullRequestAction
-import com.hootsuite.hermes.github.models.PullRequestEvent
-import com.hootsuite.hermes.github.models.PullRequestReviewAction
-import com.hootsuite.hermes.github.models.PullRequestReviewEvent
-import com.hootsuite.hermes.github.models.StatusEvent
-import com.hootsuite.hermes.github.models.StatusState
-import com.hootsuite.hermes.github.models.SupportedEvents
-import com.hootsuite.hermes.models.ReviewRequestDTO
+import com.hootsuite.hermes.github.model.ApprovalState
+import com.hootsuite.hermes.github.model.IssueCommentAction
+import com.hootsuite.hermes.github.model.IssueCommentEvent
+import com.hootsuite.hermes.github.model.PingEvent
+import com.hootsuite.hermes.github.model.PullRequestAction
+import com.hootsuite.hermes.github.model.PullRequestEvent
+import com.hootsuite.hermes.github.model.PullRequestReviewAction
+import com.hootsuite.hermes.github.model.PullRequestReviewEvent
+import com.hootsuite.hermes.github.model.StatusEvent
+import com.hootsuite.hermes.github.model.StatusState
+import com.hootsuite.hermes.github.model.SupportedEvents
+import com.hootsuite.hermes.models.ReviewRequest
 import com.hootsuite.hermes.slack.SlackMessageHandler
 
 /**
@@ -62,7 +62,7 @@ object GithubEventHandler {
                 ?.let { slackUser ->
                     // TODO Need to clean these up when we get a PR closed event
                     DatabaseUtils.createOrUpdateReviewRequest(
-                        ReviewRequestDTO(
+                        ReviewRequest(
                             pullRequestEvent.pullRequest.htmlUrl,
                             pullRequestEvent.requestedReviewer.login
                         )
