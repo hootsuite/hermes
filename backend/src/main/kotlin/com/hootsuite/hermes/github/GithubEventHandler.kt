@@ -89,7 +89,7 @@ object GithubEventHandler {
     fun issueComment(issueCommentEvent: IssueCommentEvent) {
         val commentBody = issueCommentEvent.comment.body.trim()
         if (issueCommentEvent.action == IssueCommentAction.CREATED && commentBody.startsWith(Config.REREVIEW)) {
-            val argumentList = commentBody.split(' ').drop(0)
+            val argumentList = commentBody.split(' ').drop(1)
             when {
                 commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueCommentEvent.issue.htmlUrl).forEach {
                     SlackMessageHandler.rerequestReviewer(
