@@ -90,20 +90,21 @@ object GithubEventHandler {
         val commentBody = issueCommentEvent.comment.body.trim()
         if (issueCommentEvent.action == IssueCommentAction.CREATED && commentBody.startsWith(Config.REREVIEW)) {
             val argumentList = commentBody.split(' ').drop(1)
+            val issueUrl = issueCommentEvent.issue.htmlUrl
             when {
-                commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueCommentEvent.issue.htmlUrl).forEach {
+                commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueUrl).forEach {
                     SlackMessageHandler.rerequestReviewer(
                         reviewer = it,
-                        author = issueCommentEvent.issue.user.login,
-                        url = issueCommentEvent.issue.htmlUrl
+                        author = issueCommentEvent.comment.user.login,
+                        url = issueUrl
                     )
                 }
                 argumentList.all { it.startsWith('@') } -> {
                     argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it.removePrefix("@")) }.forEach {
                         SlackMessageHandler.rerequestReviewer(
                             reviewer = it,
-                            author = issueCommentEvent.issue.user.login,
-                            url = issueCommentEvent.issue.htmlUrl
+                            author = issueCommentEvent.comment.user.login,
+                            url = issueUrl
                         )
                     }
                 }
