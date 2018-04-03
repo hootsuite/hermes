@@ -13,7 +13,7 @@ import com.hootsuite.hermes.github.model.PullRequestReviewEvent
 import com.hootsuite.hermes.github.model.StatusEvent
 import com.hootsuite.hermes.github.model.StatusState
 import com.hootsuite.hermes.github.model.SupportedEvents
-import com.hootsuite.hermes.models.ReviewRequest
+import com.hootsuite.hermes.model.ReviewRequest
 import com.hootsuite.hermes.slack.SlackMessageHandler
 
 /**

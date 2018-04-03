@@ -6,6 +6,8 @@
 /build
 /captures
 /out
+backend/out
+frontend/out
 test.mv.db
 test.trace.db
 config.json

@@ -1,0 +1,59 @@
+group = 'org.hootsuite.hermes'
+version = '0.0.1'
+
+apply plugin: 'org.jetbrains.kotlin.frontend'
+apply plugin: 'kotlin2js'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+    compile("org.jetbrains.kotlinx:kotlinx-html-js:$html_version")
+}
+
+kotlinFrontend {
+    downloadNodeJsVersion = 'latest'
+
+    sourceMaps = true
+
+    npm {
+        replaceVersion("kotlinx-html-js", "1.1.0")
+        replaceVersion("kotlinx-html-shared", "1.1.0")
+        replaceVersion("kotlin-js-library", "1.1.0")
+
+        dependency("react")
+        dependency("react-dom")
+        dependency("react-router")
+        dependency("jquery")
+        dependency("react-markdown")
+
+        devDependency("css-loader")
+        devDependency("style-loader")
+        devDependency("babel-loader")
+        devDependency("babel-core")
+        devDependency("karma")
+    }
+
+    webpackBundle {
+        publicPath = "/frontend/"
+        port = 8090
+        proxyUrl = "http://localhost:9090"
+    }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.main = "call"
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
