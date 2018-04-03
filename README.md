@@ -55,6 +55,7 @@ These are some features which are planned to be added to Hermes.
 * Subscribe to specific hermes events.
 * Control your hermes subscription through slack.
 * Add an avatar when a user is registered to display in slack.
+* Track reviewers who add themselves to a PR
 
 ## <a name="TOC-Future"></a>License ##
 
