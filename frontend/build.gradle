@@ -52,14 +52,6 @@ compileKotlin2Js {
     kotlinOptions.main = "call"
 }
 
-sourceSets {
-    main.kotlin.srcDirs += "src"
-    main.resources.srcDirs += "resources"
-    main.output.resourcesDir = "build/js/resources"
-    test.kotlin.srcDirs += "test"
-    test.resources.srcDirs += "testResources"
-}
-
 kotlin {
     experimental {
         coroutines "enable"

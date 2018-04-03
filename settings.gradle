@@ -1,2 +1,2 @@
 rootProject.name = 'hermes'
-include 'frontend', 'backend'
+include "backend", "frontend"
