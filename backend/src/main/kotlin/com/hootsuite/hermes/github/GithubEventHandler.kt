@@ -99,7 +99,7 @@ object GithubEventHandler {
                     )
                 }
                 argumentList.all { it.startsWith('@') } -> {
-                    argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it) }.forEach {
+                    argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it.removePrefix("@")) }.forEach {
                         SlackMessageHandler.rerequestReviewer(
                             reviewer = it,
                             author = issueCommentEvent.issue.user.login,
