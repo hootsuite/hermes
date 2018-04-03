@@ -87,15 +87,26 @@ object GithubEventHandler {
      * @param issueCommentEvent - The Event from the Github Webhook
      */
     fun issueComment(issueCommentEvent: IssueCommentEvent) {
-        if (issueCommentEvent.action == IssueCommentAction.CREATED &&
-            issueCommentEvent.comment.body == Config.REREVIEW
-        ) {
-            DatabaseUtils.getRereviewers(issueCommentEvent.issue.htmlUrl).forEach {
-                SlackMessageHandler.rerequestReviewer(
-                    reviewer = it,
-                    author = issueCommentEvent.issue.user.login,
-                    url = issueCommentEvent.issue.htmlUrl
-                )
+        val commentBody = issueCommentEvent.comment.body.trim()
+        if (issueCommentEvent.action == IssueCommentAction.CREATED && commentBody.startsWith(Config.REREVIEW)) {
+            val argumentList = commentBody.split(' ').drop(0)
+            when {
+                commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueCommentEvent.issue.htmlUrl).forEach {
+                    SlackMessageHandler.rerequestReviewer(
+                        reviewer = it,
+                        author = issueCommentEvent.issue.user.login,
+                        url = issueCommentEvent.issue.htmlUrl
+                    )
+                }
+                argumentList.all { it.startsWith('@') } -> {
+                    argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it) }.forEach {
+                        SlackMessageHandler.rerequestReviewer(
+                            reviewer = it,
+                            author = issueCommentEvent.issue.user.login,
+                            url = issueCommentEvent.issue.htmlUrl
+                        )
+                    }
+                }
             }
         } else {
             // TODO Handle Other Actions?
