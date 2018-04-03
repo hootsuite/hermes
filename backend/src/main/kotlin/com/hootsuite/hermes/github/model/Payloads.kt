@@ -7,7 +7,8 @@ import java.util.Arrays
  * Github Comment Model Object
  */
 data class Comment(
-    val body: String
+    val body: String,
+    val user: User
 )
 
 /**
