@@ -7,7 +7,6 @@ import com.google.gson.annotations.SerializedName
  */
 object Events {
 
-    // Event Header
     const val EVENT_HEADER = "X-GitHub-Event"
 
     const val NO_EVENT = "NO_EVENT"
@@ -52,7 +51,8 @@ data class PullRequestReviewEvent(
     val action: PullRequestReviewAction,
     val review: Review,
     @SerializedName("pull_request")
-    val pullRequest: PullRequest
+    val pullRequest: PullRequest,
+    val sender: User
 )
 
 /**

@@ -7,7 +7,6 @@ import com.hootsuite.hermes.slack.model.SlackUser
 
 /**
  * Object to handle sending various messages to Slack
- * TODO Organize the methods
  */
 object SlackMessageHandler {
 
@@ -34,8 +33,8 @@ object SlackMessageHandler {
      * @param author - The Author of the Pull Request
      * @param url - The http URL of the Pull Request
      */
-    fun approval(reviewer: String, author: SlackUser, url: String) {
-        val params = SlackParams.approval(reviewer, author.name, url, author.avatarUrl)
+    fun onApproved(reviewer: String, author: SlackUser, url: String) {
+        val params = SlackParams.approved(reviewer, author.name, url, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
 
@@ -46,9 +45,32 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      * @param comment - Review
      */
-    fun requestChanges(reviewer: String, author: SlackUser, url: String, comment: String) {
-        val params = SlackParams.requestChanges(reviewer, author.name, url, comment, author.avatarUrl)
+    fun onChangesRequested(reviewer: String, author: SlackUser, url: String, comment: String) {
+        val params = SlackParams.changesRequested(reviewer, author.name, url, comment, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
+    }
+
+    /**
+     * Send a Pull Request Commented Message to Slack
+     * @param reviewer - The Reviewer of the Pull Request
+     * @param author - The Author of the Pull Request
+     * @param url - The http URL of the Pull Request
+     * @param comment - Review
+     */
+    fun onCommented(reviewer: String, author: SlackUser, url: String, comment: String) {
+        val params = SlackParams.commented(reviewer, author.name, url, comment, author.avatarUrl)
+        sendToSlack(author.slackUrl, params)
+    }
+
+    /**
+     * Send a Pull Request Commented Message to Slack
+     * @param dismisser - The github user who dismissed the Pull Request review
+     * @param reviewer - The Author of the review which has been dismissed
+     * @param url - The http URL of the Pull Request
+     */
+    fun onReviewDismissed(dismisser: String, reviewer: SlackUser, url: String) {
+        val params = SlackParams.reviewDismissed(dismisser, reviewer.name, url, reviewer.avatarUrl)
+        sendToSlack(reviewer.slackUrl, params)
     }
 
     /**
@@ -59,14 +81,9 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      * @param title - The title of the Pull Request
      */
-    fun requestReviewer(reviewer: SlackUser, author: String, sender: String?, url: String, title: String) {
+    fun onRequestReviewer(reviewer: SlackUser, author: String, sender: String?, url: String, title: String) {
         val params = SlackParams.requestReviewer(
-            reviewer.name,
-            author,
-            sender,
-            url,
-            title,
-            reviewer.avatarUrl
+            reviewer.name, author, sender, url, title, reviewer.avatarUrl
         )
         sendToSlack(reviewer.slackUrl, params)
     }
@@ -77,9 +94,20 @@ object SlackMessageHandler {
      * @param author - The Author of the Pull Request
      * @param url - The http URL of the Pull Request
      */
-    fun rerequestReviewer(reviewer: SlackUser, author: String, url: String) {
+    fun onRerequestReviewer(reviewer: SlackUser, author: String, url: String) {
         val params = SlackParams.rerequestReviewer(reviewer.name, author, url, reviewer.avatarUrl)
         sendToSlack(reviewer.slackUrl, params)
+    }
+
+    /**
+     * Send a unhandled Rereveiew event message to slack
+     * @param commenter - The user who made the unhandled rereview event in github
+     * @param issueUrl - The URL of the Pull Request
+     * @param arguments - The list of arguments passed to the rereview command which could not be parsed
+     */
+    fun onUnhandledRereview(commenter: SlackUser, issueUrl: String, arguments: String) {
+        val params = SlackParams.unhandledReview(commenter.name, issueUrl, arguments, commenter.avatarUrl)
+        sendToSlack(commenter.slackUrl, params)
     }
 
     /**
@@ -89,7 +117,7 @@ object SlackMessageHandler {
      * @param repoName - The full repo name (Org and Repo) with the failing commit
      * @param commitUrl - The Html URL of the failing commit
      */
-    fun buildFailure(author: SlackUser, targetUrl: String, repoName: String, commitUrl: String) {
+    fun onBuildFailure(author: SlackUser, targetUrl: String, repoName: String, commitUrl: String) {
         val params = SlackParams.buildFailure(author.name, targetUrl, repoName, commitUrl, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
@@ -104,7 +132,7 @@ object SlackMessageHandler {
      * @param adminUrl - The slack URL to send the status message to
      * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
      */
-    fun createUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?, adminUrl: String) {
+    fun onCreateUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?, adminUrl: String) {
         val params = SlackParams.createUser(githubName, slackName, teamName, avatarUrl)
         sendToSlack(adminUrl, params)
     }
@@ -117,7 +145,7 @@ object SlackMessageHandler {
      * @param adminUrl - The slack URL to send the status message to
      * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
      */
-    fun updateUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?, adminUrl: String) {
+    fun onUpdateUser(githubName: String, slackName: String, teamName: String, avatarUrl: String?, adminUrl: String) {
         val params = SlackParams.updateUser(githubName, slackName, teamName, avatarUrl)
         sendToSlack(adminUrl, params)
     }
@@ -128,7 +156,7 @@ object SlackMessageHandler {
      * @param slackUrl - The slack webhook url of the team
      * @param adminUrl - The slack URL to send the status message to
      */
-    fun createTeam(teamName: String, slackUrl: String, adminUrl: String) {
+    fun onCreateTeam(teamName: String, slackUrl: String, adminUrl: String) {
         val params = SlackParams.createTeam(teamName, slackUrl)
         sendToSlack(adminUrl, params)
     }
@@ -139,7 +167,7 @@ object SlackMessageHandler {
      * @param slackUrl - The slack webhook url of the team
      * @param adminUrl - The slack URL to send the status message to
      */
-    fun updateTeam(teamName: String, slackUrl: String, adminUrl: String) {
+    fun onUpdateTeam(teamName: String, slackUrl: String, adminUrl: String) {
         val params = SlackParams.updateTeam(teamName, slackUrl)
         sendToSlack(adminUrl, params)
     }
@@ -149,7 +177,7 @@ object SlackMessageHandler {
      * @param githubName - The Github name of the missing user
      * @param adminUrl - The slack URL to send the status message to
      */
-    fun missingUser(githubName: String, adminUrl: String) {
+    fun onMissingUser(githubName: String, adminUrl: String) {
         val params = SlackParams.missingUser(githubName)
         sendToSlack(adminUrl, params)
     }
@@ -161,7 +189,7 @@ object SlackMessageHandler {
      * @param teamName - The Hermes team name which is missing
      * @param adminUrl - The slack URL to send the status message to
      */
-    fun missingTeam(githubName: String, slackName: String, teamName: String, adminUrl: String) {
+    fun onMissingTeam(githubName: String, slackName: String, teamName: String, adminUrl: String) {
         val params = SlackParams.missingTeam(githubName, slackName, teamName)
         sendToSlack(adminUrl, params)
     }
@@ -172,7 +200,7 @@ object SlackMessageHandler {
      * @param eventName - The name of the Unhandled Github event
      * @param adminUrl - The slack RUL to send the status message to
      */
-    fun unhandledEvent(eventName: String, adminUrl: String) {
+    fun onUnhandledEvent(eventName: String, adminUrl: String) {
         val params = SlackParams.unhandledEvent(eventName)
         sendToSlack(adminUrl, params)
     }
@@ -186,7 +214,7 @@ object SlackMessageHandler {
      * @param sender - The person who configured the webhook
      * @param adminUrl - The Admin URL to send the message to
      */
-    fun ping(
+    fun onPing(
         zen: String,
         missingEvents: List<String>,
         extraEvents: List<String>,

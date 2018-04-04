@@ -55,3 +55,21 @@ class ReviewRequestEntity(id: EntityID<Int>) : IntEntity(id) {
 
     companion object : IntEntityClass<ReviewRequestEntity>(ReviewRequests)
 }
+
+/**
+ * Hermes Reviews DAO
+ */
+class ReviewEntity(id: EntityID<Int>) : IntEntity(id) {
+
+    var githubName by Reviews.githubName
+    var htmlUrl by Reviews.htmlUrl
+    var reviewState by Reviews.reviewState
+
+    /**
+     * Format for viewing as a single String
+     * TODO Fix This
+     */
+    override fun toString() = "$githubName : $htmlUrl : $reviewState"
+
+    companion object : IntEntityClass<ReviewEntity>(Reviews)
+}

@@ -24,15 +24,22 @@ object Config {
 
     // TODO We should only need one of these, either register admin channel or configure via file
     // Admin slack webhook to send Hermes status messages to
-    var SLACK_ADMIN_URL = configData.adminUrl
+    var ADMIN_URL = configData.adminUrl
+
     // Admin Channel to send Hermes Status messages to
-    val ADMIN_CHANNEL = configData.adminChannel
+    val ADMIN_CHANNEL = configData.adminChannel ?: "#hermes-admin"
 
     // Port for the Server to run on
-    val SERVER_PORT = configData.serverPort
+    val SERVER_PORT = configData.serverPort ?: 8080
 
     // Trigger Comment for sending review request updates
-    val REREVIEW = configData.rereviewCommand
+    val REREVIEW = configData.rereview?.command ?: "!hermes"
+
+    // Parameter passed to rereview command to only notify people who have requested changes to the pull request
+    val REJECTED = configData.rereview?.rejected ?: "rejected"
+
+    // Parameter passed to rereview command to only notify people who have not approved the pull request
+    val UNAPPROVED = configData.rereview?.unapproved ?: "unapproved"
 
     /**
      * Supported Endpoints
@@ -45,6 +52,7 @@ object Config {
         const val TEAMS = "/teams"
         const val REGISTER_TEAM = "/registerTeam"
         const val REVIEW_REQUESTS = "/reviewRequests"
+        const val REVIEWS = "/reviews"
         const val INSTALL = "/install"
     }
 
@@ -63,9 +71,15 @@ object Config {
  */
 data class ConfigData(
     val adminUrl: String,
-    val serverPort: Int,
-    val adminChannel: String,
-    val rereviewCommand: String
+    val serverPort: Int? = null,
+    val adminChannel: String? = null,
+    val rereview: RereviewCommand? = null
+)
+
+data class RereviewCommand(
+    val command: String? = null,
+    val rejected: String? = null,
+    val unapproved: String? = null
 )
 
 /**
