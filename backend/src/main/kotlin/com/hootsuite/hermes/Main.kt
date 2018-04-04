@@ -225,11 +225,11 @@ suspend fun reviewRequestsGet(call: ApplicationCall) {
  */
 suspend fun reviewsGet(call: ApplicationCall) {
     val reviews = transaction { ReviewEntity.all().joinToString("<br>") { it.toString() } }
-    val reviewsHtml = StringBuilder()
-    reviewsHtml.append("<h1>Review Requests</h1><p>")
-    reviewsHtml.append(reviews)
-    reviewsHtml.append("</p>")
-    call.respondText(reviewsHtml.toString(), ContentType.Text.Html, HttpStatusCode.OK)
+    call.respondText(StringBuilder().apply {
+        append("<h1>Review Requests</h1><p>")
+        append(reviews)
+        append("</p>")
+    }.toString(), ContentType.Text.Html, HttpStatusCode.OK)
 }
 
 /**
@@ -246,7 +246,7 @@ suspend fun installGet(call: ApplicationCall) {
         slackAuth?.incomingWebhook?.let { webhook ->
             if (webhook.channel == Config.ADMIN_CHANNEL) {
                 // TODO Should this be the only place to configure Admin Channel?
-                Config.SLACK_ADMIN_URL = webhook.url
+                Config.ADMIN_URL = webhook.url
                 val config = Config.configData
                 // TODO Should there be specific setters?
                 Config.configData = ConfigData(

@@ -99,7 +99,7 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun reviewDismissed(dismisser: String, reviewer: String, url: String, avatarUrl: String?) = SlackParams (
+        fun reviewDismissed(dismisser: String, reviewer: String, url: String, avatarUrl: String?) = SlackParams(
             iconEmoji = ":cyclone:",
             attachments = arrayOf(
                 Attachment(

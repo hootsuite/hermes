@@ -52,17 +52,12 @@ object DatabaseUtils {
     fun getSlackUserOrNull(githubName: String): SlackUser? = transaction {
         val user = UserEntity.find { Users.githubName eq githubName }.firstOrNull()
         if (user == null) {
-            SlackMessageHandler.missingUser(githubName, Config.SLACK_ADMIN_URL)
+            SlackMessageHandler.onMissingUser(githubName, Config.ADMIN_URL)
             null
         } else {
             val team = TeamEntity.find { Teams.teamName eq user.teamName }.firstOrNull()
             if (team == null) {
-                SlackMessageHandler.missingTeam(
-                    user.githubName,
-                    user.slackName,
-                    user.teamName,
-                    Config.SLACK_ADMIN_URL
-                )
+                SlackMessageHandler.onMissingTeam(user.githubName, user.slackName, user.teamName, Config.ADMIN_URL)
                 null
             } else {
                 // TODO Where should we handle '@'? Currently it's on registration
@@ -85,12 +80,12 @@ object DatabaseUtils {
                 existingUser.slackName = formatSlackHandle(user.slackName)
                 existingUser.teamName = user.teamName
                 existingUser.avatarUrl = user.avatarUrl
-                SlackMessageHandler.updateUser(
+                SlackMessageHandler.onUpdateUser(
                     user.githubName,
                     user.slackName,
                     user.teamName,
                     user.avatarUrl,
-                    Config.SLACK_ADMIN_URL
+                    Config.ADMIN_URL
                 )
             } else {
                 UserEntity.new {
@@ -99,12 +94,12 @@ object DatabaseUtils {
                     teamName = user.teamName
                     avatarUrl = user.avatarUrl
                 }
-                SlackMessageHandler.createUser(
+                SlackMessageHandler.onCreateUser(
                     user.githubName,
                     user.slackName,
                     user.teamName,
                     user.avatarUrl,
-                    Config.SLACK_ADMIN_URL
+                    Config.ADMIN_URL
                 )
             }
         }
@@ -121,20 +116,20 @@ object DatabaseUtils {
             val existingTeam = TeamEntity.find { Teams.teamName eq team.teamName }.firstOrNull()
             if (existingTeam != null) {
                 existingTeam.slackUrl = team.slackUrl
-                SlackMessageHandler.updateTeam(
+                SlackMessageHandler.onUpdateTeam(
                     team.teamName,
                     team.slackUrl,
-                    Config.SLACK_ADMIN_URL
+                    Config.ADMIN_URL
                 )
             } else {
                 TeamEntity.new {
                     teamName = team.teamName
                     slackUrl = team.slackUrl
                 }
-                SlackMessageHandler.createTeam(
+                SlackMessageHandler.onCreateTeam(
                     team.teamName,
                     team.slackUrl,
-                    Config.SLACK_ADMIN_URL
+                    Config.ADMIN_URL
                 )
             }
         }

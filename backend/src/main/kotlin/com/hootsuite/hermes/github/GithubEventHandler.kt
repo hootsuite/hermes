@@ -37,15 +37,15 @@ object GithubEventHandler {
                 PullRequestReviewAction.SUBMITTED -> when (reviewEvent.review.state) {
                     ApprovalState.APPROVED -> {
                         DatabaseUtils.createOrUpdateReview(Review.approved(reviewer, prUrl))
-                        SlackMessageHandler.approved(reviewer, prAuthor, prUrl)
+                        SlackMessageHandler.onApproved(reviewer, prAuthor, prUrl)
                     }
                     ApprovalState.CHANGES_REQUESTED -> {
                         DatabaseUtils.createOrUpdateReview(Review.changesRequested(reviewer, prUrl))
-                        SlackMessageHandler.changesRequested(reviewer, prAuthor, prUrl, reviewEvent.review.body)
+                        SlackMessageHandler.onChangesRequested(reviewer, prAuthor, prUrl, reviewEvent.review.body)
                     }
                     ApprovalState.COMMENTED -> {
                         DatabaseUtils.createOrUpdateReview(Review.commented(reviewer, prUrl))
-                        SlackMessageHandler.commented(reviewer, prAuthor, prUrl, reviewEvent.review.body)
+                        SlackMessageHandler.onCommented(reviewer, prAuthor, prUrl, reviewEvent.review.body)
                     }
                 }
                 PullRequestReviewAction.DISMISSED -> {
@@ -54,12 +54,12 @@ object GithubEventHandler {
                     // Only notify a dismissed review when a review is dismissed by someone other than the review author
                     if (reviewer != dismisser) {
                         DatabaseUtils.getSlackUserOrNull(reviewer)?.let { slackUser ->
-                            SlackMessageHandler.reviewDismissed(dismisser, slackUser, prUrl)
+                            SlackMessageHandler.onReviewDismissed(dismisser, slackUser, prUrl)
                         }
                     }
                 }
-                PullRequestReviewAction.EDITED -> {
-                    // TODO Should we do anything here?
+                else -> {
+                    // Do Nothing
                 }
             }
         }
@@ -80,7 +80,7 @@ object GithubEventHandler {
                             pullRequestEvent.requestedReviewer.login
                         )
                     )
-                    SlackMessageHandler.requestReviewer(
+                    SlackMessageHandler.onRequestReviewer(
                         reviewer = slackUser,
                         author = pullRequestEvent.pullRequest.user.login,
                         sender = pullRequestEvent.sender?.login,
@@ -118,27 +118,27 @@ object GithubEventHandler {
     private fun parseRereview(commentBody: String, issueUrl: String, author: String, argumentList: List<String>) {
         when {
             commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueUrl).forEach {
-                SlackMessageHandler.rerequestReviewer(it, author, issueUrl)
+                SlackMessageHandler.onRerequestReviewer(it, author, issueUrl)
             }
             argumentList.all { it.startsWith(GITHUB_MENTION) } -> {
                 argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it.removePrefix(GITHUB_MENTION)) }.forEach {
-                    SlackMessageHandler.rerequestReviewer(it, author, issueUrl)
+                    SlackMessageHandler.onRerequestReviewer(it, author, issueUrl)
                 }
             }
             argumentList.size == 1 && argumentList.first() == Config.REJECTED -> {
                 DatabaseUtils.getReviewsByState(issueUrl, setOf(ReviewState.CHANGES_REQUESTED)).forEach {
-                    SlackMessageHandler.rerequestReviewer(it, author, issueUrl)
+                    SlackMessageHandler.onRerequestReviewer(it, author, issueUrl)
                 }
 
             }
             argumentList.size == 1 && argumentList.first() == Config.UNAPPROVED -> {
                 DatabaseUtils.getRereviewers(issueUrl)
                     .minus(DatabaseUtils.getReviewsByState(issueUrl, setOf(ReviewState.APPROVED)))
-                    .forEach { SlackMessageHandler.rerequestReviewer(it, author, issueUrl) }
+                    .forEach { SlackMessageHandler.onRerequestReviewer(it, author, issueUrl) }
             }
             else -> {
                 DatabaseUtils.getSlackUserOrNull(author)?.let {
-                    SlackMessageHandler.unhandledRereview(it, issueUrl, argumentList.joinToString())
+                    SlackMessageHandler.onUnhandledRereview(it, issueUrl, argumentList.joinToString())
                 }
 
             }
@@ -153,7 +153,7 @@ object GithubEventHandler {
         when (statusEvent.state) {
             StatusState.FAILURE, StatusState.ERROR -> {
                 DatabaseUtils.getSlackUserOrNull(statusEvent.commit.author.login)?.let { slackUser ->
-                    SlackMessageHandler.buildFailure(
+                    SlackMessageHandler.onBuildFailure(
                         author = slackUser,
                         targetUrl = statusEvent.targetUrl,
                         repoName = statusEvent.repository.fullName,
@@ -178,13 +178,13 @@ object GithubEventHandler {
             .filterNot { it == SupportedEvents.PING }
             .map { it.eventName }
             .filterNot { it in pingEvent.hook.events }
-        SlackMessageHandler.ping(
+        SlackMessageHandler.onPing(
             zen = pingEvent.zen,
             missingEvents = missingEvents,
             extraEvents = extraEvents,
             repoName = pingEvent.repository?.fullName ?: "Organization",
             sender = pingEvent.sender.login,
-            adminUrl = Config.SLACK_ADMIN_URL
+            adminUrl = Config.ADMIN_URL
         )
     }
 
@@ -194,6 +194,6 @@ object GithubEventHandler {
      */
     fun unhandledEvent(eventType: String) {
         //TODO Add repo / user information for unhandled events?
-        SlackMessageHandler.unhandledEvent(eventType, Config.SLACK_ADMIN_URL)
+        SlackMessageHandler.onUnhandledEvent(eventType, Config.ADMIN_URL)
     }
 }
