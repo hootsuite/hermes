@@ -48,14 +48,14 @@ These are some features which are planned to be added to Hermes.
 * Track the mean time to resolution for pull requests.
 * Better front-end interface for registering users
 * Allow the user to toggle on or off notifications
-* Control the rereview messages to be for all reviewers, only those who haven't looked, or only those who have requested changes.
-* Remove Teams and Users
+* Remove Teams and Users through a UI
 * Tests!
 * Messaging the user who configured a webhook if possible when the webhook is misconfigured.
 * Subscribe to specific hermes events.
 * Control your hermes subscription through slack.
-* Add an avatar when a user is registered to display in slack.
 * Track reviewers who add themselves to a PR
+* Change formatting of messages to be more compact
+* Add slash commands for help
 
 ## <a name="TOC-Future"></a>License ##
 

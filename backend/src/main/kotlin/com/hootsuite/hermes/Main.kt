@@ -3,6 +3,7 @@ package com.hootsuite.hermes
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
 import com.hootsuite.hermes.database.DatabaseUtils
+import com.hootsuite.hermes.database.model.ReviewEntity
 import com.hootsuite.hermes.database.model.ReviewRequestEntity
 import com.hootsuite.hermes.database.model.TeamEntity
 import com.hootsuite.hermes.database.model.UserEntity
@@ -77,6 +78,9 @@ fun main(args: Array<String>) {
 
             // ReviewRequests
             get(Config.Endpoint.REVIEW_REQUESTS) { reviewRequestsGet(call) }
+
+            //Reviews
+            get(Config.Endpoint.REVIEWS) { reviewsGet(call) }
 
             // Install Slack App
             get(Config.Endpoint.INSTALL) { installGet(call) }
@@ -215,6 +219,20 @@ suspend fun reviewRequestsGet(call: ApplicationCall) {
 }
 
 /**
+ * Handle the GET to the /reviews Endpoint
+ * @param call - The ApplicationCall of the request
+ * TODO For Testing only
+ */
+suspend fun reviewsGet(call: ApplicationCall) {
+    val reviews = transaction { ReviewEntity.all().joinToString("<br>") { it.toString() } }
+    val reviewsHtml = StringBuilder()
+    reviewsHtml.append("<h1>Review Requests</h1><p>")
+    reviewsHtml.append(reviews)
+    reviewsHtml.append("</p>")
+    call.respondText(reviewsHtml.toString(), ContentType.Text.Html, HttpStatusCode.OK)
+}
+
+/**
  * Hande the GET to the /install Endpoint. Auth the app with a specific slack channel and store that as a team in the db
  * @param call - The ApplicationCall of the request
  */
@@ -235,7 +253,7 @@ suspend fun installGet(call: ApplicationCall) {
                     webhook.url,
                     config.serverPort,
                     config.adminChannel,
-                    config.rereviewCommand
+                    config.rereview
                 )
                 call.respondText("Admin Channel Registered", ContentType.Text.Plain, HttpStatusCode.OK)
             } else {

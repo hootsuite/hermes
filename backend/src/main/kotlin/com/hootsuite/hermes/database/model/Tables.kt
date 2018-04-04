@@ -28,3 +28,12 @@ object ReviewRequests : IntIdTable() {
     val htmlUrl = varchar("htmlUrl", 150).index()
     val githubName = varchar("githubName", 50)
 }
+
+/**
+ * Reviews Table
+ */
+object Reviews : IntIdTable() {
+    val githubName = varchar("githubName", 50).index()
+    val htmlUrl = varchar("htmlUrl", 150)
+    val reviewState = varchar("reviewState", 50)
+}

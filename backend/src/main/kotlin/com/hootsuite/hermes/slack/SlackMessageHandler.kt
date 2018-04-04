@@ -34,8 +34,8 @@ object SlackMessageHandler {
      * @param author - The Author of the Pull Request
      * @param url - The http URL of the Pull Request
      */
-    fun approval(reviewer: String, author: SlackUser, url: String) {
-        val params = SlackParams.approval(reviewer, author.name, url, author.avatarUrl)
+    fun approved(reviewer: String, author: SlackUser, url: String) {
+        val params = SlackParams.approved(reviewer, author.name, url, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
 
@@ -46,9 +46,32 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      * @param comment - Review
      */
-    fun requestChanges(reviewer: String, author: SlackUser, url: String, comment: String) {
-        val params = SlackParams.requestChanges(reviewer, author.name, url, comment, author.avatarUrl)
+    fun changesRequested(reviewer: String, author: SlackUser, url: String, comment: String) {
+        val params = SlackParams.changesRequested(reviewer, author.name, url, comment, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
+    }
+
+    /**
+     * Send a Pull Request Commented Message to Slack
+     * @param reviewer - The Reviewer of the Pull Request
+     * @param author - The Author of the Pull Request
+     * @param url - The http URL of the Pull Request
+     * @param comment - Review
+     */
+    fun commented(reviewer: String, author: SlackUser, url: String, comment: String) {
+        val params = SlackParams.commented(reviewer, author.name, url, comment, author.avatarUrl)
+        sendToSlack(author.slackUrl, params)
+    }
+
+    /**
+     * Send a Pull Request Commented Message to Slack
+     * @param dismisser - The github user who dismissed the Pull Request review
+     * @param reviewer - The Author of the review which has been dismissed
+     * @param url - The http URL of the Pull Request
+     */
+    fun reviewDismissed(dismisser: String, reviewer: SlackUser, url: String) {
+        val params = SlackParams.reviewDismissed(dismisser, reviewer.name, url, reviewer.avatarUrl)
+        sendToSlack(reviewer.slackUrl, params)
     }
 
     /**
@@ -61,12 +84,7 @@ object SlackMessageHandler {
      */
     fun requestReviewer(reviewer: SlackUser, author: String, sender: String?, url: String, title: String) {
         val params = SlackParams.requestReviewer(
-            reviewer.name,
-            author,
-            sender,
-            url,
-            title,
-            reviewer.avatarUrl
+            reviewer.name, author, sender, url, title, reviewer.avatarUrl
         )
         sendToSlack(reviewer.slackUrl, params)
     }
@@ -80,6 +98,17 @@ object SlackMessageHandler {
     fun rerequestReviewer(reviewer: SlackUser, author: String, url: String) {
         val params = SlackParams.rerequestReviewer(reviewer.name, author, url, reviewer.avatarUrl)
         sendToSlack(reviewer.slackUrl, params)
+    }
+
+    /**
+     * Send a unhandled Rereveiew event message to slack
+     * @param commenter - The user who made the unhandled rereview event in github
+     * @param issueUrl - The URL of the Pull Request
+     * @param arguments - The list of arguments passed to the rereview command which could not be parsed
+     */
+    fun unhandledRereview(commenter: SlackUser, issueUrl: String, arguments: String) {
+        val params = SlackParams.unhandledReview(commenter.name, issueUrl, arguments, commenter.avatarUrl)
+        sendToSlack(commenter.slackUrl, params)
     }
 
     /**

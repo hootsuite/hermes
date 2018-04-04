@@ -22,6 +22,44 @@ data class Team(
  * DTO Object for a Hermes Review Request
  */
 data class ReviewRequest(
-    var htmlUrl: String,
-    var githubName: String
+    val htmlUrl: String,
+    val githubName: String
 )
+
+/**
+ * DTO Object for a Hermes Review
+ */
+class Review private constructor(
+    val githubName: String,
+    val htmlUrl: String,
+    val reviewState: ReviewState
+) {
+    companion object {
+        /**
+         * Builder method for Approved Review
+         * @param name - The Github name of the reviewer
+         * @param htmlUrl - The htmlUrl of the Pull Request
+         */
+        fun approved(name: String, htmlUrl: String) = Review(name, htmlUrl, ReviewState.APPROVED)
+
+        /**
+         * Builder method for Commented Review
+         * @param name - The Github name of the reviewer
+         * @param htmlUrl - The htmlUrl of the Pull Request
+         */
+        fun commented(name: String, htmlUrl: String) = Review(name, htmlUrl, ReviewState.COMMENTED)
+
+        /**
+         * Builder method for Changes Requested Review
+         * @param name - The Github name of the reviewer
+         * @param htmlUrl - The htmlUrl of the Pull Request
+         */
+        fun changesRequested(name: String, htmlUrl: String) = Review(name, htmlUrl, ReviewState.CHANGES_REQUESTED)
+    }
+}
+
+enum class ReviewState {
+    APPROVED,
+    COMMENTED,
+    CHANGES_REQUESTED
+}

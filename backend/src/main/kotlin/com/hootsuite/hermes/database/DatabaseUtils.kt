@@ -1,13 +1,17 @@
 package com.hootsuite.hermes.database
 
 import com.hootsuite.hermes.Config
+import com.hootsuite.hermes.database.model.ReviewEntity
 import com.hootsuite.hermes.database.model.ReviewRequestEntity
 import com.hootsuite.hermes.database.model.ReviewRequests
+import com.hootsuite.hermes.database.model.Reviews
 import com.hootsuite.hermes.database.model.TeamEntity
 import com.hootsuite.hermes.database.model.Teams
 import com.hootsuite.hermes.database.model.UserEntity
 import com.hootsuite.hermes.database.model.Users
+import com.hootsuite.hermes.model.Review
 import com.hootsuite.hermes.model.ReviewRequest
+import com.hootsuite.hermes.model.ReviewState
 import com.hootsuite.hermes.model.Team
 import com.hootsuite.hermes.model.User
 import com.hootsuite.hermes.slack.SlackMessageHandler
@@ -35,6 +39,7 @@ object DatabaseUtils {
             SchemaUtils.create(Users)
             SchemaUtils.create(Teams)
             SchemaUtils.create(ReviewRequests)
+            SchemaUtils.create(Reviews)
         }
     }
 
@@ -149,12 +154,45 @@ object DatabaseUtils {
         }
     }
 
+    fun createOrUpdateReview(review: Review) = transaction {
+        val existingReview = ReviewEntity.find {
+            (Reviews.htmlUrl eq review.htmlUrl).and(Reviews.githubName eq review.githubName)
+        }.firstOrNull()
+        if (existingReview != null) {
+            existingReview.reviewState = review.reviewState.name
+        } else {
+            ReviewEntity.new {
+                githubName = review.githubName
+                htmlUrl = review.htmlUrl
+                reviewState = review.reviewState.name
+            }
+        }
+    }
+
     /**
-     * Delete a review request from the database
-     * @param htmlUrl - The Url of the Pull Request to be deleted
+     * Delete review requests for the given Pull Request from the database
+     * @param url - The Url of the Pull Request
      */
-    fun deleteReviewRequest(htmlUrl: String) = transaction {
-        ReviewRequestEntity.find { ReviewRequests.htmlUrl eq htmlUrl }.map { it.delete() }
+    fun deleteReviewRequests(url: String) = transaction {
+        ReviewRequestEntity.find { ReviewRequests.htmlUrl eq url }.forEach { it.delete() }
+    }
+
+    /**
+     * Delete reviews for the given Pull Request from the database
+     * @param url - The Url of the Pull Request
+     */
+    fun deleteReviews(url: String) = transaction {
+        ReviewEntity.find { Reviews.htmlUrl eq url }.forEach { it.delete() }
+    }
+
+    /**
+     * Delete the review for the given Pull Request and Github User from the database
+     * @param url - The Url of the Pull Request
+     */
+    fun deleteReview(url: String, githubName: String) = transaction {
+        ReviewEntity.find {
+            (Reviews.htmlUrl eq url).and(Reviews.githubName eq githubName)
+        }.forEach { it.delete() }
     }
 
     /**
@@ -164,6 +202,18 @@ object DatabaseUtils {
      */
     fun getRereviewers(htmlUrl: String): List<SlackUser> = transaction {
         ReviewRequestEntity.find { ReviewRequests.htmlUrl eq htmlUrl }.mapNotNull { getSlackUserOrNull(it.githubName) }
+    }
+
+    /**
+     * Get a list of Reviewers from the database based on a key for the Pull Request and a Review State
+     * @param htmlUrl - The Html URL of the Pull Request
+     * @param reviewState - The state of review to get reviews for
+     * @return List<SlackUser> - A list of slack users who have reviewed the Pull Request with a given state
+     */
+    fun getReviewsByState(htmlUrl: String, reviewState: Set<ReviewState>): List<SlackUser> = transaction {
+        ReviewEntity.find { Reviews.htmlUrl eq htmlUrl }
+            .filter { it.reviewState in reviewState.map { it.name } }
+            .mapNotNull { getSlackUserOrNull(it.githubName) }
     }
 
     /**

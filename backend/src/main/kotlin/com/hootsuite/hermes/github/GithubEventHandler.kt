@@ -13,7 +13,9 @@ import com.hootsuite.hermes.github.model.PullRequestReviewEvent
 import com.hootsuite.hermes.github.model.StatusEvent
 import com.hootsuite.hermes.github.model.StatusState
 import com.hootsuite.hermes.github.model.SupportedEvents
+import com.hootsuite.hermes.model.Review
 import com.hootsuite.hermes.model.ReviewRequest
+import com.hootsuite.hermes.model.ReviewState
 import com.hootsuite.hermes.slack.SlackMessageHandler
 
 /**
@@ -21,31 +23,43 @@ import com.hootsuite.hermes.slack.SlackMessageHandler
  */
 object GithubEventHandler {
 
+    private const val GITHUB_MENTION = "@"
+
     /**
      * Route Pull Request Reviews to Slack
-     * @param pullRequestReviewEvent - The Event from the Github webhook
+     * @param reviewEvent - The Event from the Github webhook
      */
-    fun pullRequestReview(pullRequestReviewEvent: PullRequestReviewEvent) {
-        DatabaseUtils.getSlackUserOrNull(pullRequestReviewEvent.pullRequest.user.login)?.let { slackUser ->
-            when (pullRequestReviewEvent.action) {
-                PullRequestReviewAction.SUBMITTED -> when (pullRequestReviewEvent.review.state) {
-                    ApprovalState.APPROVED -> SlackMessageHandler.approval(
-                        reviewer = pullRequestReviewEvent.review.user.login,
-                        author = slackUser,
-                        url = pullRequestReviewEvent.pullRequest.htmlUrl
-                    )
-                    ApprovalState.CHANGES_REQUESTED -> SlackMessageHandler.requestChanges(
-                        reviewer = pullRequestReviewEvent.review.user.login,
-                        author = slackUser,
-                        url = pullRequestReviewEvent.pullRequest.htmlUrl,
-                        comment = pullRequestReviewEvent.review.body
-                    )
+    fun pullRequestReview(reviewEvent: PullRequestReviewEvent) {
+        val reviewer = reviewEvent.review.user.login
+        val prUrl = reviewEvent.pullRequest.htmlUrl
+        DatabaseUtils.getSlackUserOrNull(reviewEvent.pullRequest.user.login)?.let { prAuthor ->
+            when (reviewEvent.action) {
+                PullRequestReviewAction.SUBMITTED -> when (reviewEvent.review.state) {
+                    ApprovalState.APPROVED -> {
+                        DatabaseUtils.createOrUpdateReview(Review.approved(reviewer, prUrl))
+                        SlackMessageHandler.approved(reviewer, prAuthor, prUrl)
+                    }
+                    ApprovalState.CHANGES_REQUESTED -> {
+                        DatabaseUtils.createOrUpdateReview(Review.changesRequested(reviewer, prUrl))
+                        SlackMessageHandler.changesRequested(reviewer, prAuthor, prUrl, reviewEvent.review.body)
+                    }
                     ApprovalState.COMMENTED -> {
-                        // TODO What do we want to do here?
+                        DatabaseUtils.createOrUpdateReview(Review.commented(reviewer, prUrl))
+                        SlackMessageHandler.commented(reviewer, prAuthor, prUrl, reviewEvent.review.body)
                     }
                 }
-                else -> {
-                    // TODO Handle other actions?
+                PullRequestReviewAction.DISMISSED -> {
+                    DatabaseUtils.deleteReview(prUrl, reviewer)
+                    val dismisser = reviewEvent.sender.login
+                    // Only notify a dismissed review when a review is dismissed by someone other than the review author
+                    if (reviewer != dismisser) {
+                        DatabaseUtils.getSlackUserOrNull(reviewer)?.let { slackUser ->
+                            SlackMessageHandler.reviewDismissed(dismisser, slackUser, prUrl)
+                        }
+                    }
+                }
+                PullRequestReviewAction.EDITED -> {
+                    // TODO Should we do anything here?
                 }
             }
         }
@@ -60,7 +74,6 @@ object GithubEventHandler {
             PullRequestAction.REVIEW_REQUESTED -> pullRequestEvent.requestedReviewer
                 ?.let { DatabaseUtils.getSlackUserOrNull(it.login) }
                 ?.let { slackUser ->
-                    // TODO Need to clean these up when we get a PR closed event
                     DatabaseUtils.createOrUpdateReviewRequest(
                         ReviewRequest(
                             pullRequestEvent.pullRequest.htmlUrl,
@@ -75,7 +88,12 @@ object GithubEventHandler {
                         title = pullRequestEvent.pullRequest.title
                     )
                 }
-            PullRequestAction.CLOSED -> DatabaseUtils.deleteReviewRequest(pullRequestEvent.pullRequest.htmlUrl)
+            PullRequestAction.CLOSED -> {
+                pullRequestEvent.pullRequest.htmlUrl.let {
+                    DatabaseUtils.deleteReviewRequests(it)
+                    DatabaseUtils.deleteReviews(it)
+                }
+            }
             else -> {
                 // TODO Handle Other actions?
             }
@@ -84,33 +102,46 @@ object GithubEventHandler {
 
     /**
      * Route Issue Comment Events to Slack. Gets a list of reviewers from the database.
-     * @param issueCommentEvent - The Event from the Github Webhook
+     * @param commentEvent - The Event from the Github Webhook
      */
-    fun issueComment(issueCommentEvent: IssueCommentEvent) {
-        val commentBody = issueCommentEvent.comment.body.trim()
-        if (issueCommentEvent.action == IssueCommentAction.CREATED && commentBody.startsWith(Config.REREVIEW)) {
+    fun issueComment(commentEvent: IssueCommentEvent) {
+        val commentBody = commentEvent.comment.body.trim()
+        if (commentEvent.action == IssueCommentAction.CREATED && commentBody.startsWith(Config.REREVIEW)) {
+            // Extract the parameters passed to the rereview command
             val argumentList = commentBody.split(' ').drop(1)
-            val issueUrl = issueCommentEvent.issue.htmlUrl
-            when {
-                commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueUrl).forEach {
-                    SlackMessageHandler.rerequestReviewer(
-                        reviewer = it,
-                        author = issueCommentEvent.comment.user.login,
-                        url = issueUrl
-                    )
-                }
-                argumentList.all { it.startsWith('@') } -> {
-                    argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it.removePrefix("@")) }.forEach {
-                        SlackMessageHandler.rerequestReviewer(
-                            reviewer = it,
-                            author = issueCommentEvent.comment.user.login,
-                            url = issueUrl
-                        )
-                    }
-                }
-            }
+            parseRereview(commentBody, commentEvent.issue.htmlUrl, commentEvent.comment.user.login, argumentList)
         } else {
             // TODO Handle Other Actions?
+        }
+    }
+
+    private fun parseRereview(commentBody: String, issueUrl: String, author: String, argumentList: List<String>) {
+        when {
+            commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueUrl).forEach {
+                SlackMessageHandler.rerequestReviewer(it, author, issueUrl)
+            }
+            argumentList.all { it.startsWith(GITHUB_MENTION) } -> {
+                argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it.removePrefix(GITHUB_MENTION)) }.forEach {
+                    SlackMessageHandler.rerequestReviewer(it, author, issueUrl)
+                }
+            }
+            argumentList.size == 1 && argumentList.first() == Config.REJECTED -> {
+                DatabaseUtils.getReviewsByState(issueUrl, setOf(ReviewState.CHANGES_REQUESTED)).forEach {
+                    SlackMessageHandler.rerequestReviewer(it, author, issueUrl)
+                }
+
+            }
+            argumentList.size == 1 && argumentList.first() == Config.UNAPPROVED -> {
+                DatabaseUtils.getRereviewers(issueUrl)
+                    .minus(DatabaseUtils.getReviewsByState(issueUrl, setOf(ReviewState.APPROVED)))
+                    .forEach { SlackMessageHandler.rerequestReviewer(it, author, issueUrl) }
+            }
+            else -> {
+                DatabaseUtils.getSlackUserOrNull(author)?.let {
+                    SlackMessageHandler.unhandledRereview(it, issueUrl, argumentList.joinToString())
+                }
+
+            }
         }
     }
 

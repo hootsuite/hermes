@@ -24,7 +24,7 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun approval(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
+        fun approved(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
             iconEmoji = ":thumbsup:",
             attachments = arrayOf(
                 Attachment(
@@ -49,22 +49,66 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun requestChanges(
-            reviewer: String,
-            author: String,
-            url: String,
-            comment: String,
-            avatarUrl: String?
-        ) = SlackParams(
-            iconEmoji = ":no_entry:",
+        fun changesRequested(reviewer: String, author: String, url: String, comment: String, avatarUrl: String?) =
+            SlackParams(
+                iconEmoji = ":no_entry:",
+                attachments = arrayOf(
+                    Attachment(
+                        fallback = "$reviewer - Changes Requested for $author.",
+                        color = "danger",
+                        author_name = reviewer,
+                        title = "PR Changes Requested: ${formatUrl(url)}",
+                        title_link = url,
+                        text = "<$author>, changes have been requested to your PR.\n$comment",
+                        thumb_url = avatarUrl
+                    )
+                ),
+                linkNames = 1
+            )
+
+        /**
+         * Format a Pull Request Commented Message for Slack
+         * @param reviewer - The Reviewer of the Pull Request
+         * @param author - The Author of the Pull Request
+         * @param url - The http URL of the Pull Request
+         * @param comment - The comment on the Review
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
+         * @return SlackParams - The params of the formatted slack message
+         */
+        fun commented(reviewer: String, author: String, url: String, comment: String, avatarUrl: String?) = SlackParams(
+            iconEmoji = ":eyes:",
             attachments = arrayOf(
                 Attachment(
-                    fallback = "$reviewer - Changes Requested for $author.",
-                    color = "danger",
+                    fallback = "$reviewer - Comments left for $author.",
+                    color = "warning",
                     author_name = reviewer,
-                    title = "PR Changes Requested: ${formatUrl(url)}",
+                    title = "PR Commented: ${formatUrl(url)}",
                     title_link = url,
-                    text = "<$author>, changes have been requested to your PR.\n$comment",
+                    text = "<$author>, comments have been left on your PR.\n$comment",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
+
+        /**
+         * Format a Pull Request Commented Message for Slack
+         * @param dismisser - The person who dismissed the Pull Request Review
+         * @param reviewer - The Author of the Pull Request Review
+         * @param url - The http URL of the Pull Request
+         * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
+         * @return SlackParams - The params of the formatted slack message
+         */
+        fun reviewDismissed(dismisser: String, reviewer: String, url: String, avatarUrl: String?) = SlackParams (
+            iconEmoji = ":cyclone:",
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$reviewer: $dismisser has dismissed your Pull Request.",
+                    color = "warning",
+                    author_name = dismisser,
+                    title = "Review Dismissed: ${formatUrl(url)}",
+                    title_link = url,
+                    text = "<$reviewer>, one of your reviews have been dismissed by $dismisser.",
                     thumb_url = avatarUrl
                 )
             ),
@@ -120,6 +164,21 @@ data class SlackParams(
                     title = "Please take another look: ${formatUrl(url)}",
                     title_link = url,
                     text = "<$reviewer>: $author has requested another look at the Pull Request.",
+                    thumb_url = avatarUrl
+                )
+            ),
+            linkNames = 1
+        )
+
+        fun unhandledReview(commenter: String, url: String, arguments: String, avatarUrl: String?) = SlackParams(
+            attachments = arrayOf(
+                Attachment(
+                    fallback = "$commenter: Your rereview command failed.",
+                    color = "warning",
+                    author_name = commenter,
+                    title = "Your rereview command failed: ${formatUrl(url)}",
+                    title_link = url,
+                    text = "<$commenter>: Please use /help rereview to see accepted arguments\nYou tried: $arguments",
                     thumb_url = avatarUrl
                 )
             ),
