@@ -33,32 +33,30 @@ object GithubEventHandler {
         val reviewer = reviewEvent.review.user.login
         val prUrl = reviewEvent.pullRequest.htmlUrl
         val author = reviewEvent.pullRequest.user.login
-        DatabaseUtils.getSlackUserOrNull(author)?.let { prAuthor ->
+        val reviewBody = reviewEvent.review.body
+        DatabaseUtils.getSlackUserOrNull(author)?.also { prAuthor ->
             when (reviewEvent.action) {
-                PullRequestReviewAction.SUBMITTED -> when (reviewEvent.review.state) {
-                    ApprovalState.APPROVED -> {
-                        DatabaseUtils.createOrUpdateReview(Review.approved(reviewer, prUrl))
-                        SlackMessageHandler.onApproved(reviewer, prAuthor, prUrl)
-                    }
-                    ApprovalState.CHANGES_REQUESTED -> {
-                        DatabaseUtils.createOrUpdateReview(Review.changesRequested(reviewer, prUrl))
-                        SlackMessageHandler.onChangesRequested(reviewer, prAuthor, prUrl, reviewEvent.review.body)
-                    }
-                    ApprovalState.COMMENTED -> {
-                        if (reviewer != author) {
+                PullRequestReviewAction.SUBMITTED -> if (reviewer != author) {
+                    DatabaseUtils.createOrUpdateReviewRequest(ReviewRequest(prUrl, reviewer))
+                    when (reviewEvent.review.state) {
+                        ApprovalState.APPROVED -> {
+                            DatabaseUtils.createOrUpdateReview(Review.approved(reviewer, prUrl))
+                            SlackMessageHandler.onApproved(reviewer, prAuthor, prUrl)
+                        }
+                        ApprovalState.CHANGES_REQUESTED -> {
+                            DatabaseUtils.createOrUpdateReview(Review.changesRequested(reviewer, prUrl))
+                            SlackMessageHandler.onChangesRequested(reviewer, prAuthor, prUrl, reviewBody)
+                        }
+                        ApprovalState.COMMENTED -> {
                             DatabaseUtils.createOrUpdateReview(Review.commented(reviewer, prUrl))
-                            SlackMessageHandler.onCommented(reviewer, prAuthor, prUrl, reviewEvent.review.body)
+                            SlackMessageHandler.onCommented(reviewer, prAuthor, prUrl, reviewBody)
                         }
                     }
                 }
                 PullRequestReviewAction.DISMISSED -> {
                     DatabaseUtils.deleteReview(prUrl, reviewer)
-                    val dismisser = reviewEvent.sender.login
-                    // Only notify a dismissed review when a review is dismissed by someone other than the review author
-                    if (reviewer != dismisser) {
-                        DatabaseUtils.getSlackUserOrNull(reviewer)?.let { slackUser ->
-                            SlackMessageHandler.onReviewDismissed(dismisser, slackUser, prUrl)
-                        }
+                    DatabaseUtils.getSlackUserOrNull(reviewer)?.let { slackUser ->
+                        SlackMessageHandler.onReviewDismissed(reviewEvent.sender.login, slackUser, prUrl)
                     }
                 }
                 else -> {
