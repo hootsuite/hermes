@@ -32,7 +32,8 @@ object GithubEventHandler {
     fun pullRequestReview(reviewEvent: PullRequestReviewEvent) {
         val reviewer = reviewEvent.review.user.login
         val prUrl = reviewEvent.pullRequest.htmlUrl
-        DatabaseUtils.getSlackUserOrNull(reviewEvent.pullRequest.user.login)?.let { prAuthor ->
+        val author = reviewEvent.pullRequest.user.login
+        DatabaseUtils.getSlackUserOrNull(author)?.let { prAuthor ->
             when (reviewEvent.action) {
                 PullRequestReviewAction.SUBMITTED -> when (reviewEvent.review.state) {
                     ApprovalState.APPROVED -> {
@@ -44,8 +45,10 @@ object GithubEventHandler {
                         SlackMessageHandler.onChangesRequested(reviewer, prAuthor, prUrl, reviewEvent.review.body)
                     }
                     ApprovalState.COMMENTED -> {
-                        DatabaseUtils.createOrUpdateReview(Review.commented(reviewer, prUrl))
-                        SlackMessageHandler.onCommented(reviewer, prAuthor, prUrl, reviewEvent.review.body)
+                        if (reviewer != author) {
+                            DatabaseUtils.createOrUpdateReview(Review.commented(reviewer, prUrl))
+                            SlackMessageHandler.onCommented(reviewer, prAuthor, prUrl, reviewEvent.review.body)
+                        }
                     }
                 }
                 PullRequestReviewAction.DISMISSED -> {
