@@ -74,19 +74,23 @@ object GithubEventHandler {
             PullRequestAction.REVIEW_REQUESTED -> pullRequestEvent.requestedReviewer
                 ?.let { DatabaseUtils.getSlackUserOrNull(it.login) }
                 ?.let { slackUser ->
+                    val requestedReviewer = pullRequestEvent.requestedReviewer.login
+                    val requestSender = pullRequestEvent.sender?.login
                     DatabaseUtils.createOrUpdateReviewRequest(
                         ReviewRequest(
                             pullRequestEvent.pullRequest.htmlUrl,
-                            pullRequestEvent.requestedReviewer.login
+                            requestedReviewer
                         )
                     )
-                    SlackMessageHandler.onRequestReviewer(
-                        reviewer = slackUser,
-                        author = pullRequestEvent.pullRequest.user.login,
-                        sender = pullRequestEvent.sender?.login,
-                        url = pullRequestEvent.pullRequest.htmlUrl,
-                        title = pullRequestEvent.pullRequest.title
-                    )
+                    if (requestSender != requestedReviewer) {
+                        SlackMessageHandler.onRequestReviewer(
+                            reviewer = slackUser,
+                            author = pullRequestEvent.pullRequest.user.login,
+                            sender = requestSender,
+                            url = pullRequestEvent.pullRequest.htmlUrl,
+                            title = pullRequestEvent.pullRequest.title
+                        )
+                    }
                 }
             PullRequestAction.CLOSED -> {
                 pullRequestEvent.pullRequest.htmlUrl.let {
