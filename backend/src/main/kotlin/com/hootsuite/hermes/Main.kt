@@ -13,6 +13,7 @@ import com.hootsuite.hermes.github.model.SupportedEvents
 import com.hootsuite.hermes.model.Team
 import com.hootsuite.hermes.model.User
 import com.hootsuite.hermes.slack.model.SlackAuth
+import com.hootsuite.hermes.slack.model.SlashCommand
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
@@ -53,6 +54,7 @@ fun main(args: Array<String>) {
                 setDateFormat(DateFormat.LONG)
                 setPrettyPrinting()
             }
+
         }
         routing {
             get(Config.Endpoint.ROOT) { call.respondText("Hermes") }
@@ -84,6 +86,9 @@ fun main(args: Array<String>) {
 
             // Install Slack App
             get(Config.Endpoint.INSTALL) { installGet(call) }
+
+            // Handle Slack Slash Command
+            post(Config.Endpoint.SLACK) { slackPost(call) }
         }
     }
     server.start(wait = true)
@@ -264,6 +269,22 @@ suspend fun installGet(call: ApplicationCall) {
         } ?: call.respondText("Didn't get the right slack object sorry", ContentType.Text.Html, HttpStatusCode.OK)
     } else {
         // TODO Handle non-200
+    }
+}
+
+suspend fun slackPost(call: ApplicationCall) {
+    val slashCommand = SlashCommand.fromParameters(call.receive())
+    val splitText = slashCommand.text.split(' ')
+    val command = splitText.firstOrNull()
+    val parameters = splitText.drop(1)
+    when (command) {
+        SlashCommand.REGISTER -> DatabaseUtils.createOrUpdateUser(
+            User(parameters[0], slashCommand.username, "#${slashCommand.channel}")
+        )
+        SlashCommand.AVATAR -> DatabaseUtils.updateAvatar(slashCommand.username, parameters[0])
+        else -> {
+            // TODO Message the possible commands
+        }
     }
 }
 

@@ -72,36 +72,53 @@ object DatabaseUtils {
      * TODO Handle Problems storing
      * @param user - The User Model Object to be stored
      */
-    fun createOrUpdateUser(user: User) {
+    fun createOrUpdateUser(user: User) = transaction {
         // TODO Extract and make multiple transactions
-        transaction {
-            val existingUser = UserEntity.find { Users.githubName eq user.githubName }.firstOrNull()
-            if (existingUser != null) {
-                existingUser.slackName = formatSlackHandle(user.slackName)
-                existingUser.teamName = user.teamName
-                existingUser.avatarUrl = user.avatarUrl
-                SlackMessageHandler.onUpdateUser(
-                    user.githubName,
-                    user.slackName,
-                    user.teamName,
-                    user.avatarUrl,
-                    Config.ADMIN_URL
-                )
-            } else {
-                UserEntity.new {
-                    githubName = user.githubName
-                    slackName = formatSlackHandle(user.slackName)
-                    teamName = user.teamName
-                    avatarUrl = user.avatarUrl
-                }
-                SlackMessageHandler.onCreateUser(
-                    user.githubName,
-                    user.slackName,
-                    user.teamName,
-                    user.avatarUrl,
-                    Config.ADMIN_URL
-                )
+        val existingUser = UserEntity.find { Users.githubName eq user.githubName }.firstOrNull()
+        if (existingUser != null) {
+            existingUser.slackName = formatSlackHandle(user.slackName)
+            existingUser.teamName = user.teamName
+            existingUser.avatarUrl = user.avatarUrl
+            SlackMessageHandler.onUpdateUser(
+                user.githubName,
+                user.slackName,
+                user.teamName,
+                user.avatarUrl,
+                Config.ADMIN_URL
+            )
+        } else {
+            UserEntity.new {
+                githubName = user.githubName
+                slackName = formatSlackHandle(user.slackName)
+                teamName = user.teamName
+                avatarUrl = user.avatarUrl
             }
+            SlackMessageHandler.onCreateUser(
+                user.githubName,
+                user.slackName,
+                user.teamName,
+                user.avatarUrl,
+                Config.ADMIN_URL
+            )
+        }
+    }
+
+    /**
+     * Update a Users Avatar based on a slack handle
+     * @param slackHandle - The slack handle of the user (including the mention character)
+     * @param avatarString - The string of the User's avatar
+     */
+    fun updateAvatar(slackHandle: String, avatarString: String) = transaction {
+        val existingUser = UserEntity.find { Users.slackName eq formatSlackHandle(slackHandle) }.firstOrNull()
+        if (existingUser != null) {
+            existingUser.avatarUrl = avatarString
+            SlackMessageHandler.onUpdateUser(
+                existingUser.githubName,
+                existingUser.slackName,
+                existingUser.teamName,
+                existingUser.avatarUrl,
+                Config.ADMIN_URL
+            )
         }
     }
 
