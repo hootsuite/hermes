@@ -1,6 +1,7 @@
 package com.hootsuite.hermes.slack.model
 
 import com.google.gson.annotations.SerializedName
+import io.ktor.http.Parameters
 
 /**
  * Attachment for formatting Slack Messages
@@ -45,3 +46,40 @@ data class IncomingWebhook(
     val configurationUrl: String,
     val url: String
 )
+
+data class SlashCommand(
+    val username: String,
+    val channel: String,
+    val responseUrl: String,
+    val text: String
+) {
+    companion object {
+        const val REGISTER = "register"
+        const val AVATAR = "avatar"
+
+        fun fromParameters(parameters: Parameters) = SlashCommand(
+            parameters["user_name"] ?: "",
+            parameters["channel_name"] ?: "",
+            parameters["response_url"] ?: "",
+            parameters["text"] ?: ""
+
+        )
+    }
+}
+
+data class SlashResponse(
+    @SerializedName("response_type")
+    val responseType: ResponseType,
+    val text: String
+) {
+    companion object {
+        fun ephemeral(text: String) = SlashResponse(ResponseType.EPHEMERAL, text)
+    }
+
+    enum class ResponseType {
+        @SerializedName("in_channel")
+        IN_CHANNEL,
+        @SerializedName("ephemeral")
+        EPHEMERAL
+    }
+}

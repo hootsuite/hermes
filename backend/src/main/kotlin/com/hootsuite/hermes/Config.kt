@@ -54,6 +54,7 @@ object Config {
         const val REVIEW_REQUESTS = "/reviewRequests"
         const val REVIEWS = "/reviews"
         const val INSTALL = "/install"
+        const val SLACK = "/slack"
     }
 
     /**
