@@ -237,6 +237,21 @@ object DatabaseUtils {
     }
 
     /**
+     * Get a list of Review Requests from the database based on a github username
+     * @param slackHandle - The slack handle of the Review Requests to find
+     * @return List<ReviewRequest> - The Review requests associated with the given github user
+     */
+    fun getReviewRequestsBySlackHandle(slackHandle: String): List<ReviewRequest> = transaction {
+        val user = UserEntity.find { Users.slackName eq slackHandle }.firstOrNull()
+        if (user != null) {
+            ReviewRequestEntity.find { ReviewRequests.githubName eq user.githubName }
+                .map { ReviewRequest(it.htmlUrl, it.githubName) }
+        } else {
+            emptyList()
+        }
+    }
+
+    /**
      * Format a handle for tagging in Slack
      * TODO Should the handle formatting be handled here?
      * @param name - The slack name of the user

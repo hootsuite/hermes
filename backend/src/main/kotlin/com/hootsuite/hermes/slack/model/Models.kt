@@ -56,6 +56,7 @@ data class SlashCommand(
     companion object {
         const val REGISTER = "register"
         const val AVATAR = "avatar"
+        const val REVIEWS = "reviews"
 
         fun fromParameters(parameters: Parameters) = SlashCommand(
             parameters["user_name"] ?: "",

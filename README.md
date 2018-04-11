@@ -53,9 +53,7 @@ These are some features which are planned to be added to Hermes.
 * Messaging the user who configured a webhook if possible when the webhook is misconfigured.
 * Subscribe to specific hermes events.
 * Control your hermes subscription through slack.
-* Track reviewers who add themselves to a PR
 * Change formatting of messages to be more compact
-* Add slash commands for help
 
 ## <a name="TOC-Future"></a>License ##
 
