@@ -58,7 +58,8 @@ object SlashCommandHandler {
 
     private val HELP_TEXT = """Please use one of the following slash commands:
         ```/hermes register <your github username>
-        /hermes avatar <your chosen avatar URL>```""".trimIndent()
+        /hermes avatar <your chosen avatar URL>
+        /hermes reviews```""".trimIndent()
 
     private const val REGISTER_HELP = "Register with your github username: `/hermes register <your github username>`"
 
