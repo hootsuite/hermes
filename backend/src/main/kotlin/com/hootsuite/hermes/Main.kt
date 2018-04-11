@@ -219,10 +219,16 @@ suspend fun registerTeamGet(call: ApplicationCall) {
  * TODO For Testing only
  */
 suspend fun reviewRequestsGet(call: ApplicationCall) {
-    val reviewRequests = transaction { ReviewRequestEntity.all().joinToString("<br>") { it.toString() } }
+    val requestsString = transaction {
+        val name = call.request.queryParameters["name"]
+        val requests = ReviewRequestEntity.all()
+        val filteredRequests = name?.let { requests.filter { it.githubName == name } } ?: requests
+        // TODO Do this on the frontend when built
+        filteredRequests.joinToString("<br>") { "<a href=\"${it.htmlUrl}\">$it</a>" }
+    }
     val teamsHtml = StringBuilder()
     teamsHtml.append("<h1>Review Requests</h1><p>")
-    teamsHtml.append(reviewRequests)
+    teamsHtml.append(requestsString)
     teamsHtml.append("</p>")
     call.respondText(teamsHtml.toString(), ContentType.Text.Html, HttpStatusCode.OK)
 }
@@ -233,10 +239,16 @@ suspend fun reviewRequestsGet(call: ApplicationCall) {
  * TODO For Testing only
  */
 suspend fun reviewsGet(call: ApplicationCall) {
-    val reviews = transaction { ReviewEntity.all().joinToString("<br>") { it.toString() } }
+    val reviewsString = transaction {
+        val name = call.request.queryParameters["name"]
+        val reviews = ReviewEntity.all()
+        val filteredReviews = name?.let { reviews.filter { it.githubName == name }} ?: reviews
+        // TODO Do this on the frontend when built
+        filteredReviews.joinToString("<br>") { "<a href=\"${it.htmlUrl}\">$it</a>" }
+    }
     call.respondText(StringBuilder().apply {
-        append("<h1>Review Requests</h1><p>")
-        append(reviews)
+        append("<h1>Reviews</h1><p>")
+        append(reviewsString)
         append("</p>")
     }.toString(), ContentType.Text.Html, HttpStatusCode.OK)
 }
