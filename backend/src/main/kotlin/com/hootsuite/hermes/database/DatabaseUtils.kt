@@ -241,13 +241,13 @@ object DatabaseUtils {
      * @param slackHandle - The slack handle of the Review Requests to find
      * @return List<ReviewRequest> - The Review requests associated with the given github user
      */
-    fun getReviewRequestsBySlackHandle(slackHandle: String): List<ReviewRequest>? = transaction {
+    fun getReviewRequestsBySlackHandle(slackHandle: String): List<ReviewRequest> = transaction {
         val user = UserEntity.find { Users.slackName eq slackHandle }.firstOrNull()
         if (user != null) {
             ReviewRequestEntity.find { ReviewRequests.githubName eq user.githubName }
                 .map { ReviewRequest(it.htmlUrl, it.githubName) }
         } else {
-            null
+            emptyList()
         }
     }
 

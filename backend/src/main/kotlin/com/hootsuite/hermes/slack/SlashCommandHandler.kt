@@ -46,7 +46,7 @@ object SlashCommandHandler {
             SlashCommand.REVIEWS -> {
                 if (parameters.isEmpty()) {
                     val requests = DatabaseUtils.getReviewRequestsBySlackHandle("@${slashCommand.username}")
-                    requests?.joinToString("\n") { it.htmlUrl } ?: REVIEWS_NONE
+                    if (requests.isEmpty()) REVIEWS_NONE else requests.joinToString("\n") { it.htmlUrl }
                 } else {
                     REVIEWS_HELP
                 }
