@@ -43,6 +43,14 @@ object SlashCommandHandler {
                     AVATAR_HELP
                 }
             }
+            SlashCommand.REVIEWS -> {
+                if (parameters.isEmpty()) {
+                    val requests = DatabaseUtils.getReviewRequestsBySlackHandle("@${slashCommand.username}")
+                    requests?.joinToString("\n") { it.htmlUrl } ?: REVIEWS_NONE
+                } else {
+                    REVIEWS_HELP
+                }
+            }
             else -> {
                 HELP_TEXT
             }
@@ -58,4 +66,7 @@ object SlashCommandHandler {
     private const val AVATAR_HELP = "Update your avatar with a URL: `/hermes avatar <your chosen avatar URL>`"
 
     private const val DIRECT_MESSAGE = "directmessage"
+
+    private const val REVIEWS_HELP = "Search for your review requests: `/hermes reviews`"
+    private const val REVIEWS_NONE = "I did not find any Review Requests for you."
 }
