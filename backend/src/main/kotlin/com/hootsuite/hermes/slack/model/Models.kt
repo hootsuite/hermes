@@ -66,3 +66,20 @@ data class SlashCommand(
         )
     }
 }
+
+data class SlashResponse(
+    @SerializedName("response_type")
+    val responseType: ResponseType,
+    val text: String
+) {
+    companion object {
+        fun ephemeral(text: String) = SlashResponse(ResponseType.EPHEMERAL, text)
+    }
+
+    enum class ResponseType {
+        @SerializedName("in_channel")
+        IN_CHANNEL,
+        @SerializedName("ephemeral")
+        EPHEMERAL
+    }
+}

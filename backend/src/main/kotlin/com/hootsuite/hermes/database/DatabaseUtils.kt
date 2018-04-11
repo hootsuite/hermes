@@ -68,6 +68,14 @@ object DatabaseUtils {
     }
 
     /**
+     * Gets a team from the database or null if the team does not exist
+     * @param team - The name of the team to lookup
+     * @return TeamEntity? Teh team entity from the database or null if the team doesn't exist
+     */
+    fun getTeamOrNull(team: String): TeamEntity? =
+        transaction { TeamEntity.find { Teams.teamName eq team }.firstOrNull() }
+
+    /**
      * Create or update a User in the Database
      * TODO Handle Problems storing
      * @param user - The User Model Object to be stored
