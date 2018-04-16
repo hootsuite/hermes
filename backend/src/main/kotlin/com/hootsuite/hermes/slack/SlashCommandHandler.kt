@@ -25,7 +25,7 @@ object SlashCommandHandler {
                     "#${slashCommand.channel}"
                 }
                 if (parameters.size == 1) {
-                    DatabaseUtils.createOrUpdateUser(User(parameters.first(), slashCommand.username, team))
+                    DatabaseUtils.createOrUpdateUserBySlackHandle(User(parameters.first(), slashCommand.username, team))
                     if (DatabaseUtils.getTeamOrNull(team) != null) {
                         "You have successfully registered to $team"
                     } else {
@@ -33,6 +33,17 @@ object SlashCommandHandler {
                     }
                 } else {
                     REGISTER_HELP
+                }
+            }
+            SlashCommand.UNREGISTER -> {
+                if (parameters.isEmpty()) {
+                    val count = DatabaseUtils.deleteUsersBySlackHandle(slashCommand.username)
+                    when (count) {
+                        0 -> "Cannot find a user for your slack handle, nothing to deregister"
+                        else -> "Successfully unregistered $count associated Github Users"
+                    }
+                } else {
+                    UNREGISTER_HELP
                 }
             }
             SlashCommand.AVATAR -> {
@@ -56,12 +67,14 @@ object SlashCommandHandler {
             }
         }
 
-    private val HELP_TEXT = """Please use one of the following slash commands:
-        ```/hermes register <your github username>
-        /hermes avatar <your chosen avatar URL>
-        /hermes reviews```""".trimIndent()
+    private val HELP_TEXT = """Please use one of the following slash commands:```/hermes register <your github username>
+        |/hermes unregister
+        |/hermes avatar <your chosen avatar URL>
+        |/hermes reviews```""".trimMargin()
 
     private const val REGISTER_HELP = "Register with your github username: `/hermes register <your github username>`"
+
+    private const val UNREGISTER_HELP = "Unregister associated github accounts: `/hermes unregister`"
 
     private const val AVATAR_UPDATED = "Your Avatar has been updated."
     private const val AVATAR_HELP = "Update your avatar with a URL: `/hermes avatar <your chosen avatar URL>`"
