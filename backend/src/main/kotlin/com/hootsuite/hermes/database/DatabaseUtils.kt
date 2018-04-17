@@ -110,41 +110,6 @@ object DatabaseUtils {
     }
 
     /**
-     * Create or update a User in the Database keyed on a User's Slack Handle
-     * @param user - The User Model Object to be stored
-     */
-    fun createOrUpdateUserBySlackHandle(user: User) = transaction {
-        val formattedHandle = formatSlackHandle(user.slackName)
-        val existingUser = UserEntity.find { Users.slackName eq formattedHandle }.firstOrNull()
-        if (existingUser != null) {
-            existingUser.slackName = formattedHandle
-            existingUser.teamName = user.teamName
-            existingUser.avatarUrl = user.avatarUrl
-            SlackMessageHandler.onUpdateUser(
-                user.githubName,
-                user.slackName,
-                user.teamName,
-                user.avatarUrl,
-                Config.ADMIN_URL
-            )
-        } else {
-            UserEntity.new {
-                githubName = user.githubName
-                slackName = formattedHandle
-                teamName = user.teamName
-                avatarUrl = user.avatarUrl
-            }
-            SlackMessageHandler.onCreateUser(
-                user.githubName,
-                user.slackName,
-                user.teamName,
-                user.avatarUrl,
-                Config.ADMIN_URL
-            )
-        }
-    }
-
-    /**
      * Delete Users for the given Slack Handle from the database
      * @param slackHandle - The Slack Handle of the User to be deleted
      */
