@@ -25,7 +25,7 @@ object SlashCommandHandler {
                     "#${slashCommand.channel}"
                 }
                 if (parameters.size == 1) {
-                    DatabaseUtils.createOrUpdateUserBySlackHandle(User(parameters.first(), slashCommand.username, team))
+                    DatabaseUtils.createOrUpdateUserByGithubName(User(parameters.first(), slashCommand.username, team))
                     if (DatabaseUtils.getTeamOrNull(team) != null) {
                         "You have successfully registered to $team"
                     } else {
