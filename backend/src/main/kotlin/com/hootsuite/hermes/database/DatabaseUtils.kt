@@ -76,12 +76,10 @@ object DatabaseUtils {
         transaction { TeamEntity.find { Teams.teamName eq team }.firstOrNull() }
 
     /**
-     * Create or update a User in the Database
-     * TODO Handle Problems storing
+     * Create or update a User in the Database keyed on a User's Github Name
      * @param user - The User Model Object to be stored
      */
-    fun createOrUpdateUser(user: User) = transaction {
-        // TODO Extract and make multiple transactions
+    fun createOrUpdateUserByGithubName(user: User) = transaction {
         val existingUser = UserEntity.find { Users.githubName eq user.githubName }.firstOrNull()
         if (existingUser != null) {
             existingUser.slackName = formatSlackHandle(user.slackName)
@@ -112,6 +110,16 @@ object DatabaseUtils {
     }
 
     /**
+     * Delete Users for the given Slack Handle from the database
+     * @param slackHandle - The Slack Handle of the User to be deleted
+     */
+    fun deleteUsersBySlackHandle(slackHandle: String): Int = transaction {
+        val users = UserEntity.find { Users.slackName eq formatSlackHandle(slackHandle) }
+        users.forEach { it.delete() }
+        users.count()
+    }
+
+    /**
      * Update a Users Avatar based on a slack handle
      * @param slackHandle - The slack handle of the user (including the mention character)
      * @param avatarString - The string of the User's avatar
@@ -132,7 +140,6 @@ object DatabaseUtils {
 
     /**
      * Create or update a Team in the Database
-     * TODO Handle Problems storing
      * @param team - The Team Model Object to be stored
      */
     fun createOrUpdateTeam(team: Team) {
@@ -162,7 +169,6 @@ object DatabaseUtils {
 
     /**
      * Create or update a Review Request in the database
-     * TODO Handle Problems storing
      * @param request - The Review Request to be stored in the database
      */
     fun createOrUpdateReviewRequest(request: ReviewRequest) = transaction {
@@ -174,6 +180,10 @@ object DatabaseUtils {
         }
     }
 
+    /**
+     * Create or update a Review in the database
+     * @param review - The Review to be stored in the database
+     */
     fun createOrUpdateReview(review: Review) = transaction {
         val existingReview = ReviewEntity.find {
             (Reviews.htmlUrl eq review.htmlUrl).and(Reviews.githubName eq review.githubName)
