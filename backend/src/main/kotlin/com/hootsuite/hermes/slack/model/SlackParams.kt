@@ -59,7 +59,7 @@ data class SlackParams(
                         author_name = reviewer,
                         title = "PR Changes Requested: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$author>, changes have been requested to your PR.\n$comment",
+                        text = "<$author>, changes are requested to your PR.${comment?.let { "\n$comment" } ?: ""}",
                         thumb_url = avatarUrl
                     )
                 ),
@@ -85,7 +85,7 @@ data class SlackParams(
                         author_name = reviewer,
                         title = "PR Commented: ${formatUrl(url)}",
                         title_link = url,
-                        text = "<$author>, comments have been left on your PR.\n$comment",
+                        text = "<$author>, comments have been left on your PR.${comment?.let { "\n$comment" } ?: ""}",
                         thumb_url = avatarUrl
                     )
                 ),
