@@ -115,8 +115,9 @@ object DatabaseUtils {
      */
     fun deleteUsersBySlackHandle(slackHandle: String): Int = transaction {
         val users = UserEntity.find { Users.slackName eq formatSlackHandle(slackHandle) }
+        val size = users.toList().size
         users.forEach { it.delete() }
-        users.count()
+        size
     }
 
     /**
