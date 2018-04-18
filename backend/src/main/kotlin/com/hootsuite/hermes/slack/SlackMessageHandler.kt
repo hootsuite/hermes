@@ -45,7 +45,7 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      * @param comment - Review
      */
-    fun onChangesRequested(reviewer: String, author: SlackUser, url: String, comment: String) {
+    fun onChangesRequested(reviewer: String, author: SlackUser, url: String, comment: String?) {
         val params = SlackParams.changesRequested(reviewer, author.name, url, comment, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }
@@ -57,7 +57,7 @@ object SlackMessageHandler {
      * @param url - The http URL of the Pull Request
      * @param comment - Review
      */
-    fun onCommented(reviewer: String, author: SlackUser, url: String, comment: String) {
+    fun onCommented(reviewer: String, author: SlackUser, url: String, comment: String?) {
         val params = SlackParams.commented(reviewer, author.name, url, comment, author.avatarUrl)
         sendToSlack(author.slackUrl, params)
     }

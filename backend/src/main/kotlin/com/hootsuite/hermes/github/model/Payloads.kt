@@ -51,7 +51,7 @@ data class Repository(
 data class Review(
     val user: User,
     val state: ApprovalState,
-    val body: String
+    val body: String?
 )
 
 /**

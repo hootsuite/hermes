@@ -49,7 +49,7 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun changesRequested(reviewer: String, author: String, url: String, comment: String, avatarUrl: String?) =
+        fun changesRequested(reviewer: String, author: String, url: String, comment: String?, avatarUrl: String?) =
             SlackParams(
                 iconEmoji = ":no_entry:",
                 attachments = arrayOf(
@@ -75,21 +75,22 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun commented(reviewer: String, author: String, url: String, comment: String, avatarUrl: String?) = SlackParams(
-            iconEmoji = ":eyes:",
-            attachments = arrayOf(
-                Attachment(
-                    fallback = "$reviewer - Comments left for $author.",
-                    color = "warning",
-                    author_name = reviewer,
-                    title = "PR Commented: ${formatUrl(url)}",
-                    title_link = url,
-                    text = "<$author>, comments have been left on your PR.\n$comment",
-                    thumb_url = avatarUrl
-                )
-            ),
-            linkNames = 1
-        )
+        fun commented(reviewer: String, author: String, url: String, comment: String?, avatarUrl: String?) =
+            SlackParams(
+                iconEmoji = ":eyes:",
+                attachments = arrayOf(
+                    Attachment(
+                        fallback = "$reviewer - Comments left for $author.",
+                        color = "warning",
+                        author_name = reviewer,
+                        title = "PR Commented: ${formatUrl(url)}",
+                        title_link = url,
+                        text = "<$author>, comments have been left on your PR.\n$comment",
+                        thumb_url = avatarUrl
+                    )
+                ),
+                linkNames = 1
+            )
 
         /**
          * Format a Pull Request Commented Message for Slack
