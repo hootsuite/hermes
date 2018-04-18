@@ -39,8 +39,8 @@ object SlashCommandHandler {
                 if (parameters.isEmpty()) {
                     val count = DatabaseUtils.deleteUsersBySlackHandle(slashCommand.username)
                     when (count) {
-                        0 -> "Cannot find a user for your slack handle, nothing to deregister"
-                        else -> "Successfully unregistered $count associated Github Users"
+                        0 -> "Cannot find a user for your slack handle, it seems you're not registered."
+                        else -> "Successfully unregistered $count associated Github Users."
                     }
                 } else {
                     UNREGISTER_HELP
