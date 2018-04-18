@@ -77,6 +77,7 @@ For example:
 
 Hermes users can use the `/hermes` command in Slack to register or update their information. Currently, the supported commands are:
 * `/hermes register <github-name>` to register to the channel the user is currently in
+* `/hermes unregister` to unregister from hermes for a given slack handle
 * `/hermes avatar <avatar-url>` to add or update their Hermes avatar
 * `/hermes reviews` to show the reviews they are currently requested to take a look at 
 
