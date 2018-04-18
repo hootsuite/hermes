@@ -136,7 +136,7 @@ suspend fun usersGet(call: ApplicationCall) {
  */
 suspend fun usersPost(call: ApplicationCall) {
     val user = call.receive<User>()
-    DatabaseUtils.createOrUpdateUser(user)
+    DatabaseUtils.createOrUpdateUserByGithubName(user)
     //TODO Handle problems and Response
 }
 
@@ -162,7 +162,7 @@ suspend fun registerUserGet(call: ApplicationCall) {
         return
     }
     val avatarUrl = if (call.parameters["avatarUrl"].isNullOrEmpty()) null else call.parameters["avatarUrl"]
-    DatabaseUtils.createOrUpdateUser(User(githubName, slackName, teamName, avatarUrl))
+    DatabaseUtils.createOrUpdateUserByGithubName(User(githubName, slackName, teamName, avatarUrl))
     // TODO Handle Problems
     call.respondText("User Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
 }

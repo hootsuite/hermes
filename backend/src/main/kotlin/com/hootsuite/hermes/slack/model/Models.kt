@@ -55,6 +55,7 @@ data class SlashCommand(
 ) {
     companion object {
         const val REGISTER = "register"
+        const val UNREGISTER = "unregister"
         const val AVATAR = "avatar"
         const val REVIEWS = "reviews"
 
