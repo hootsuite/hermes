@@ -55,8 +55,11 @@ object GithubEventHandler {
                 }
                 PullRequestReviewAction.DISMISSED -> {
                     DatabaseUtils.deleteReview(prUrl, reviewer)
-                    DatabaseUtils.getSlackUserOrNull(reviewer)?.let { slackUser ->
-                        SlackMessageHandler.onReviewDismissed(reviewEvent.sender.login, slackUser, prUrl)
+                    val sender = reviewEvent.sender.login
+                    if (sender != reviewer) {
+                        DatabaseUtils.getSlackUserOrNull(reviewer)?.let { slackUser ->
+                            SlackMessageHandler.onReviewDismissed(sender, slackUser, prUrl)
+                        }
                     }
                 }
                 else -> {
