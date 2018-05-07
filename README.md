@@ -173,7 +173,7 @@ These are some features which are planned to be added to Hermes. Please feel fre
 * Track the mean time to resolution for pull requests.
 * Better front-end interface for registering users (React frontend with the [kotlin-frontend-plugin](https://github.com/Kotlin/kotlin-frontend-plugin))
 * Allow the user to toggle on or off notifications
-* Remove Teams and Users through the frontend
+* Add a Bot user for people to recieve private messages.
 * Tests!
 * Messaging the user who configured a webhook if possible when the webhook is misconfigured.
 * Subscribe to specific hermes events.
