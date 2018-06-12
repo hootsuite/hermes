@@ -48,10 +48,10 @@ Whenever a status check fails, the PR author will get a Hermes message letting t
 
 After a PR author has made requested changes to a Pull request, or if they want to ask a reviewer to look again after time has passed, an author can comment on the Pull Request with various control comments.
 
-`!hermes` will send a message to each of the reviewers asking them to take another look
-`!hermes @user` will send a message to that particular user asking them to take another look
-`!hermes unapproved` will send a message to any reviewer who has not approved the Pull Request.
-`!hermes rejected` will send a message to the reviewers who have previously rejected the Pull Request.
+* `!hermes` will send a message to each of the reviewers asking them to take another look
+* `!hermes @user` will send a message to that particular user asking them to take another look
+* `!hermes unapproved` will send a message to any reviewer who has not approved the Pull Request.
+* `!hermes rejected` will send a message to the reviewers who have previously rejected the Pull Request.
 
 The message in slack is:
 
