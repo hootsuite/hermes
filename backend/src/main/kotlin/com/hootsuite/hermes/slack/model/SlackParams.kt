@@ -156,20 +156,21 @@ data class SlackParams(
          * @param avatarUrl - The Url of the avatar of the user or null if there is no avatar
          * @return SlackParams - The params of the formatted slack message
          */
-        fun rerequestReviewer(reviewer: String, author: String, url: String, avatarUrl: String?) = SlackParams(
-            attachments = arrayOf(
-                Attachment(
-                    fallback = "$reviewer: $author has updated their Pull Request.",
-                    color = "#439FE0",
-                    author_name = author,
-                    title = "Please take another look: ${formatUrl(url)}",
-                    title_link = url,
-                    text = "<$reviewer>: $author has requested another look at the Pull Request.",
-                    thumb_url = avatarUrl
-                )
-            ),
-            linkNames = 1
-        )
+        fun rerequestReviewer(reviewer: String, requester: String, author: String, url: String, avatarUrl: String?) =
+            SlackParams(
+                attachments = arrayOf(
+                    Attachment(
+                        fallback = "$reviewer: $author has updated their Pull Request.",
+                        color = "#439FE0",
+                        author_name = author,
+                        title = "Please take another look: ${formatUrl(url)}",
+                        title_link = url,
+                        text = "<$reviewer>: $requester has requested another look at the Pull Request.",
+                        thumb_url = avatarUrl
+                    )
+                ),
+                linkNames = 1
+            )
 
         fun unhandledReview(commenter: String, url: String, arguments: String, avatarUrl: String?) = SlackParams(
             attachments = arrayOf(

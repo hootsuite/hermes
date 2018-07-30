@@ -94,8 +94,8 @@ object SlackMessageHandler {
      * @param author - The Author of the Pull Request
      * @param url - The http URL of the Pull Request
      */
-    fun onRerequestReviewer(reviewer: SlackUser, author: String, url: String) {
-        val params = SlackParams.rerequestReviewer(reviewer.name, author, url, reviewer.avatarUrl)
+    fun onRerequestReviewer(reviewer: SlackUser, requester: String, author: String, url: String) {
+        val params = SlackParams.rerequestReviewer(reviewer.name, requester, author, url, reviewer.avatarUrl)
         sendToSlack(reviewer.slackUrl, params)
     }
 
