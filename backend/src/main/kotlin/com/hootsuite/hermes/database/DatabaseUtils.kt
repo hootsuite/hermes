@@ -189,7 +189,7 @@ object DatabaseUtils {
         val existingReview = ReviewEntity.find {
             (Reviews.htmlUrl eq review.htmlUrl).and(Reviews.githubName eq review.githubName)
         }.firstOrNull()
-        if (existingReview != null) {
+        if (existingReview != null && review.reviewState != ReviewState.COMMENTED) {
             existingReview.reviewState = review.reviewState.name
         } else {
             ReviewEntity.new {

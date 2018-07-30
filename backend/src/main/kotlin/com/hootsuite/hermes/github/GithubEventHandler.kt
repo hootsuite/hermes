@@ -117,32 +117,44 @@ object GithubEventHandler {
         if (commentEvent.action == IssueCommentAction.CREATED && commentBody.startsWith(Config.REREVIEW)) {
             // Extract the parameters passed to the rereview command
             val argumentList = commentBody.split(' ').drop(1)
-            parseRereview(commentBody, commentEvent.issue.htmlUrl, commentEvent.comment.user.login, argumentList)
+            parseRereview(
+                commentBody,
+                commentEvent.issue.htmlUrl,
+                commentEvent.comment.user.login,
+                commentEvent.issue.user.login,
+                argumentList
+            )
         } else {
             // TODO Handle Other Actions?
         }
     }
 
-    private fun parseRereview(commentBody: String, issueUrl: String, author: String, argumentList: List<String>) {
+    private fun parseRereview(
+        commentBody: String,
+        issueUrl: String,
+        requester: String,
+        author: String,
+        argumentList: List<String>
+    ) {
         when {
             commentBody == Config.REREVIEW -> DatabaseUtils.getRereviewers(issueUrl).forEach {
-                SlackMessageHandler.onRerequestReviewer(it, author, issueUrl)
+                SlackMessageHandler.onRerequestReviewer(it, requester, author, issueUrl)
             }
             argumentList.all { it.startsWith(GITHUB_MENTION) } -> {
                 argumentList.mapNotNull { DatabaseUtils.getSlackUserOrNull(it.removePrefix(GITHUB_MENTION)) }.forEach {
-                    SlackMessageHandler.onRerequestReviewer(it, author, issueUrl)
+                    SlackMessageHandler.onRerequestReviewer(it, requester, author, issueUrl)
                 }
             }
             argumentList.size == 1 && argumentList.first() == Config.REJECTED -> {
                 DatabaseUtils.getReviewsByState(issueUrl, setOf(ReviewState.CHANGES_REQUESTED)).forEach {
-                    SlackMessageHandler.onRerequestReviewer(it, author, issueUrl)
+                    SlackMessageHandler.onRerequestReviewer(it, requester, author, issueUrl)
                 }
 
             }
             argumentList.size == 1 && argumentList.first() == Config.UNAPPROVED -> {
                 DatabaseUtils.getRereviewers(issueUrl)
                     .minus(DatabaseUtils.getReviewsByState(issueUrl, setOf(ReviewState.APPROVED)))
-                    .forEach { SlackMessageHandler.onRerequestReviewer(it, author, issueUrl) }
+                    .forEach { SlackMessageHandler.onRerequestReviewer(it, requester, author, issueUrl) }
             }
             else -> {
                 DatabaseUtils.getSlackUserOrNull(author)?.let {
