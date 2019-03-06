@@ -4,11 +4,10 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
 import com.google.gson.Gson
-import com.hootsuite.hermes.database.DatabaseUtils
+import com.hootsuite.hermes.database.DataStore
 import com.hootsuite.hermes.database.model.ReviewEntity
 import com.hootsuite.hermes.database.model.ReviewRequestEntity
 import com.hootsuite.hermes.database.model.TeamEntity
-import com.hootsuite.hermes.database.model.UserEntity
 import com.hootsuite.hermes.github.GithubEventHandler
 import com.hootsuite.hermes.github.model.Events
 import com.hootsuite.hermes.github.model.SupportedEvents
@@ -18,6 +17,7 @@ import com.hootsuite.hermes.slack.SlashCommandHandler
 import com.hootsuite.hermes.slack.model.SlackAuth
 import com.hootsuite.hermes.slack.model.SlashCommand
 import com.hootsuite.hermes.slack.model.SlashResponse
+import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
@@ -34,22 +34,47 @@ import io.ktor.request.header
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.routing
+import io.ktor.routing.*
+import io.ktor.server.engine.applicationEngineEnvironment
+import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.text.DateFormat
+
+// Dependencies exposed for testing purposes
+internal var dataStore = DataStore()
+internal var githubEventHandler = GithubEventHandler(dataStore)
+internal var slackCommandHandler = SlashCommandHandler(dataStore)
 
 /**
  * Main Entry Point into the ktor Application
  */
 fun main(args: Array<String>) {
 
-    DatabaseUtils.configureDatabase()
+    dataStore.configureDatabase()
 
-    val server = embeddedServer(Netty, Config.SERVER_PORT) {
+    val env = applicationEngineEnvironment {
+        module {
+            main()
+        }
+        // Private API
+        connector {
+            host = "127.0.0.1"
+            port = Config.SERVER_PORT_PRIVATE
+        }
+        // Public API
+        connector {
+            host = "0.0.0.0"
+            port = Config.SERVER_PORT
+        }
+    }
+
+    embeddedServer(Netty, env).start(wait = true)
+}
+
+
+fun Application.main() {
         install(DefaultHeaders)
         install(Compression)
         install(CallLogging)
@@ -58,7 +83,6 @@ fun main(args: Array<String>) {
                 setDateFormat(DateFormat.LONG)
                 setPrettyPrinting()
             }
-
         }
         routing {
             get(Config.Endpoint.ROOT) { call.respondText("Hermes") }
@@ -73,29 +97,38 @@ fun main(args: Array<String>) {
             post(Config.Endpoint.WEBHOOK) { webhookPost(call) }
 
             // Users
-            get(Config.Endpoint.USERS) { usersGet(call) }
-            post(Config.Endpoint.USERS) { usersPost(call) }
-            get(Config.Endpoint.REGISTER_USER) { registerUserGet(call) }
+            get(Config.Endpoint.USERS) { if (ensurePrivateApi(call)) { usersGet(call) } }
+            post(Config.Endpoint.USERS) { if (ensurePrivateApi(call)) { usersPost(call) } }
+            get(Config.Endpoint.REGISTER_USER) { if (ensurePrivateApi(call)) { registerUserGet(call) } }
 
             // Teams
-            get(Config.Endpoint.TEAMS) { teamsGet(call) }
-            post(Config.Endpoint.TEAMS) { teamsPost(call) }
-            get(Config.Endpoint.REGISTER_TEAM) { registerTeamGet(call) }
+            get(Config.Endpoint.TEAMS) { if (ensurePrivateApi(call)) { teamsGet(call) } }
+            post(Config.Endpoint.TEAMS) { if (ensurePrivateApi(call)) { teamsPost(call) } }
+            get(Config.Endpoint.REGISTER_TEAM) { if (ensurePrivateApi(call)) { registerTeamGet(call) } }
 
             // ReviewRequests
-            get(Config.Endpoint.REVIEW_REQUESTS) { reviewRequestsGet(call) }
+            get(Config.Endpoint.REVIEW_REQUESTS) { if (ensurePrivateApi(call)) { reviewRequestsGet(call) } }
 
             //Reviews
-            get(Config.Endpoint.REVIEWS) { reviewsGet(call) }
+            get(Config.Endpoint.REVIEWS) { if (ensurePrivateApi(call)) { reviewsGet(call) } }
 
             // Install Slack App
-            get(Config.Endpoint.INSTALL) { installGet(call) }
+            get(Config.Endpoint.INSTALL) { if (ensurePrivateApi(call)) { installGet(call) } }
 
             // Handle Slack Slash Command
-            post(Config.Endpoint.SLACK) { slackPost(call) }
+            post(Config.Endpoint.SLACK) { if (ensurePrivateApi(call)) { slackPost(call) } }
         }
+
+
+}
+
+private fun ensurePrivateApi(call: ApplicationCall): Boolean {
+    val isPrivateApi = call.request.local.port == Config.SERVER_PORT_PRIVATE
+
+    if (!isPrivateApi) {
+        call.response.status(HttpStatusCode.Forbidden)
     }
-    server.start(wait = true)
+    return isPrivateApi
 }
 
 /**
@@ -105,12 +138,12 @@ fun main(args: Array<String>) {
 suspend fun webhookPost(call: ApplicationCall) {
     val eventType = call.request.header(Events.EVENT_HEADER) ?: Events.NO_EVENT
     when (eventType) {
-        SupportedEvents.PULL_REQUEST_REVIEW.eventName -> GithubEventHandler.pullRequestReview(call.receive())
-        SupportedEvents.PULL_REQUEST.eventName -> GithubEventHandler.pullRequest(call.receive())
-        SupportedEvents.ISSUE_COMMENT.eventName -> GithubEventHandler.issueComment(call.receive())
-        SupportedEvents.STATUS.eventName -> GithubEventHandler.status(call.receive())
-        SupportedEvents.PING.eventName -> GithubEventHandler.ping(call.receive())
-        else -> GithubEventHandler.unhandledEvent(eventType)
+        SupportedEvents.PULL_REQUEST_REVIEW.eventName -> githubEventHandler.pullRequestReview(call.receive())
+        SupportedEvents.PULL_REQUEST.eventName -> githubEventHandler.pullRequest(call.receive())
+        SupportedEvents.ISSUE_COMMENT.eventName -> githubEventHandler.issueComment(call.receive())
+        SupportedEvents.STATUS.eventName -> githubEventHandler.status(call.receive())
+        SupportedEvents.PING.eventName -> githubEventHandler.ping(call.receive())
+        else -> githubEventHandler.unhandledEvent(eventType)
     }
     // TODO Handle Problems
     call.respond(HttpStatusCode.OK)
@@ -122,7 +155,7 @@ suspend fun webhookPost(call: ApplicationCall) {
  */
 suspend fun usersGet(call: ApplicationCall) {
     // TODO Some sort of frontend
-    val users = transaction { UserEntity.all().joinToString("<br>") { it.toString() } }
+    val users = dataStore.getAllUsers().joinToString("<br>") { it.toString() }
     val usersHtml = StringBuilder()
     usersHtml.append("<h1>Users</h1><p>")
     usersHtml.append(users)
@@ -136,7 +169,7 @@ suspend fun usersGet(call: ApplicationCall) {
  */
 suspend fun usersPost(call: ApplicationCall) {
     val user = call.receive<User>()
-    DatabaseUtils.createOrUpdateUserByGithubName(user)
+    dataStore.createOrUpdateUserByGithubName(user)
     //TODO Handle problems and Response
 }
 
@@ -162,7 +195,7 @@ suspend fun registerUserGet(call: ApplicationCall) {
         return
     }
     val avatarUrl = if (call.parameters["avatarUrl"].isNullOrEmpty()) null else call.parameters["avatarUrl"]
-    DatabaseUtils.createOrUpdateUserByGithubName(User(githubName, slackName, teamName, avatarUrl))
+    dataStore.createOrUpdateUserByGithubName(User(githubName, slackName, teamName, avatarUrl))
     // TODO Handle Problems
     call.respondText("User Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
 }
@@ -187,7 +220,7 @@ suspend fun teamsGet(call: ApplicationCall) {
  */
 suspend fun teamsPost(call: ApplicationCall) {
     val team = call.receive<Team>()
-    DatabaseUtils.createOrUpdateTeam(team)
+    dataStore.createOrUpdateTeam(team)
     call.respond(HttpStatusCode.OK)
 }
 
@@ -208,7 +241,7 @@ suspend fun registerTeamGet(call: ApplicationCall) {
         return
     }
     // TODO When we use a POST or a Slack APP, we should be able to use the full URL or the Slack Channel
-    DatabaseUtils.createOrUpdateTeam(Team(teamName, "https://hooks.slack.com/services/$slackUrl"))
+    dataStore.createOrUpdateTeam(Team(teamName, "https://hooks.slack.com/services/$slackUrl"))
     // TODO Handle Problems and Response
     call.respondText("Team Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
 }
@@ -265,12 +298,13 @@ suspend fun installGet(call: ApplicationCall) {
                 Config.configData = ConfigData(
                     webhook.url,
                     config.serverPort,
+                    config.serverPortPrivate,
                     config.adminChannel,
                     config.rereview
                 )
                 call.respondText("Admin Channel Registered", ContentType.Text.Plain, HttpStatusCode.OK)
             } else {
-                DatabaseUtils.createOrUpdateTeam(Team(webhook.channel, webhook.url))
+                dataStore.createOrUpdateTeam(Team(webhook.channel, webhook.url))
                 call.respondText("Team Created or Updated Successfully", ContentType.Text.Plain, HttpStatusCode.OK)
                 // TODO Proper Error Case
             }
@@ -289,7 +323,7 @@ suspend fun slackPost(call: ApplicationCall) {
     val splitText = slashCommand.text.split(' ')
     val command = splitText.firstOrNull()
     val parameters = splitText.drop(1)
-    val responseText = SlashCommandHandler.handleSlashCommand(slashCommand, command, parameters)
+    val responseText = slackCommandHandler.handleSlashCommand(slashCommand, command, parameters)
     call.respond(HttpStatusCode.OK)
     Fuel
         .post(slashCommand.responseUrl)

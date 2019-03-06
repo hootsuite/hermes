@@ -2,6 +2,7 @@ package com.hootsuite.hermes
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import java.io.File
 
 /**
@@ -14,13 +15,13 @@ object Config {
 
     const val SLACK_AUTH_URL = "https://slack.com/api/oauth.access"
 
-    var configData: ConfigData = Gson().fromJson<ConfigData>(File(CONFIG_PATH).readText(), ConfigData::class.java)
+    var configData: ConfigData = initDataFromFile(CONFIG_PATH)
         set(value) {
             File(CONFIG_PATH).writeText(GsonBuilder().setPrettyPrinting().create().toJson(value))
             field = value
         }
 
-    val authData: AuthData = Gson().fromJson<AuthData>(File(SECRETS_PATH).readText(), AuthData::class.java)
+    val authData: AuthData = initDataFromFile(SECRETS_PATH)
 
     // TODO We should only need one of these, either register admin channel or configure via file
     // Admin slack webhook to send Hermes status messages to
@@ -32,6 +33,9 @@ object Config {
     // Port for the Server to run on
     val SERVER_PORT = configData.serverPort ?: 8080
 
+    // Port for the private APIs to run on
+    val SERVER_PORT_PRIVATE = configData.serverPortPrivate ?: 9090
+
     // Trigger Comment for sending review request updates
     val REREVIEW = configData.rereview?.command ?: "!hermes"
 
@@ -40,6 +44,14 @@ object Config {
 
     // Parameter passed to rereview command to only notify people who have not approved the pull request
     val UNAPPROVED = configData.rereview?.unapproved ?: "unapproved"
+
+
+    private inline fun <reified T>initDataFromFile(path: String): T =
+        if (File(path).exists()) {
+            Gson().fromJson<T>(File(path).readText(), object: TypeToken<T>() {}.type)
+        } else {
+            throw IllegalStateException("File $path does not exist")
+        }
 
     /**
      * Supported Endpoints
@@ -71,22 +83,23 @@ object Config {
  * Data class for the config.json file
  */
 data class ConfigData(
-    val adminUrl: String,
-    val serverPort: Int? = null,
-    val adminChannel: String? = null,
-    val rereview: RereviewCommand? = null
+        val adminUrl: String,
+        val serverPort: Int? = null,
+        val serverPortPrivate: Int? = null,
+        val adminChannel: String? = null,
+        val rereview: RereviewCommand? = null
 )
 
 data class RereviewCommand(
-    val command: String? = null,
-    val rejected: String? = null,
-    val unapproved: String? = null
+        val command: String? = null,
+        val rejected: String? = null,
+        val unapproved: String? = null
 )
 
 /**
  * Auth Data for authorizing with slack
  */
 data class AuthData(
-    val clientId: String,
-    val secret: String
+        val clientId: String,
+        val secret: String
 )

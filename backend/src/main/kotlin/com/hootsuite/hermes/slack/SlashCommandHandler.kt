@@ -1,13 +1,13 @@
 package com.hootsuite.hermes.slack
 
-import com.hootsuite.hermes.database.DatabaseUtils
+import com.hootsuite.hermes.database.DataStore
 import com.hootsuite.hermes.model.User
 import com.hootsuite.hermes.slack.model.SlashCommand
 
 /**
- * Object to parse the incoming slash commands from slack
+ * Class to parse the incoming slash commands from slack
  */
-object SlashCommandHandler {
+class SlashCommandHandler(val dataStore: DataStore) {
 
     /**
      * Handle an incoming Slash Command from slack and return a response String to send to the user
@@ -25,8 +25,8 @@ object SlashCommandHandler {
                     "#${slashCommand.channel}"
                 }
                 if (parameters.size == 1) {
-                    DatabaseUtils.createOrUpdateUserByGithubName(User(parameters.first(), slashCommand.username, team))
-                    if (DatabaseUtils.getTeamOrNull(team) != null) {
+                    dataStore.createOrUpdateUserByGithubName(User(parameters.first(), slashCommand.username, team))
+                    if (dataStore.getTeamOrNull(team) != null) {
                         "You have successfully registered to $team"
                     } else {
                         "$team is not registered, please register that team with Hermes."
@@ -37,7 +37,7 @@ object SlashCommandHandler {
             }
             SlashCommand.UNREGISTER -> {
                 if (parameters.isEmpty()) {
-                    val count = DatabaseUtils.deleteUsersBySlackHandle(slashCommand.username)
+                    val count = dataStore.deleteUsersBySlackHandle(slashCommand.username)
                     when (count) {
                         0 -> "Cannot find a user for your slack handle, it seems you're not registered."
                         else -> "Successfully unregistered $count associated Github Users."
@@ -48,7 +48,7 @@ object SlashCommandHandler {
             }
             SlashCommand.AVATAR -> {
                 if (parameters.size == 1) {
-                    DatabaseUtils.updateAvatar(slashCommand.username, parameters[0])
+                    dataStore.updateAvatar(slashCommand.username, parameters[0])
                     AVATAR_UPDATED
                 } else {
                     AVATAR_HELP
@@ -56,7 +56,7 @@ object SlashCommandHandler {
             }
             SlashCommand.REVIEWS -> {
                 if (parameters.isEmpty()) {
-                    val requests = DatabaseUtils.getReviewRequestsBySlackHandle("@${slashCommand.username}")
+                    val requests = dataStore.getReviewRequestsBySlackHandle("@${slashCommand.username}")
                     if (requests.isEmpty()) REVIEWS_NONE else requests.joinToString("\n") { it.htmlUrl }
                 } else {
                     REVIEWS_HELP
@@ -67,20 +67,23 @@ object SlashCommandHandler {
             }
         }
 
-    private val HELP_TEXT = """Please use one of the following slash commands:```/hermes register <your github username>
+
+    companion object {
+        private val HELP_TEXT = """Please use one of the following slash commands:```/hermes register <your github username>
         |/hermes unregister
         |/hermes avatar <your chosen avatar URL>
         |/hermes reviews```""".trimMargin()
 
-    private const val REGISTER_HELP = "Register with your github username: `/hermes register <your github username>`"
+        private const val REGISTER_HELP = "Register with your github username: `/hermes register <your github username>`"
 
-    private const val UNREGISTER_HELP = "Unregister associated github accounts: `/hermes unregister`"
+        private const val UNREGISTER_HELP = "Unregister associated github accounts: `/hermes unregister`"
 
-    private const val AVATAR_UPDATED = "Your Avatar has been updated."
-    private const val AVATAR_HELP = "Update your avatar with a URL: `/hermes avatar <your chosen avatar URL>`"
+        private const val AVATAR_UPDATED = "Your Avatar has been updated."
+        private const val AVATAR_HELP = "Update your avatar with a URL: `/hermes avatar <your chosen avatar URL>`"
 
-    private const val DIRECT_MESSAGE = "directmessage"
+        private const val DIRECT_MESSAGE = "directmessage"
 
-    private const val REVIEWS_HELP = "Search for your review requests: `/hermes reviews`"
-    private const val REVIEWS_NONE = "I did not find any Review Requests for you."
+        private const val REVIEWS_HELP = "Search for your review requests: `/hermes reviews`"
+        private const val REVIEWS_NONE = "I did not find any Review Requests for you."
+    }
 }

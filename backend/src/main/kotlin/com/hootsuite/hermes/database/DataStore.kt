@@ -23,9 +23,9 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
- * Object to wrap database calls
+ * Class to wrap database calls
  */
-object DatabaseUtils {
+class DataStore {
 
     /**
      * Configure the Database for storing user and team information
@@ -42,6 +42,11 @@ object DatabaseUtils {
             SchemaUtils.create(Reviews)
         }
     }
+
+    /**
+     * Retrieves all registered Hermes users from the DB
+     */
+    fun getAllUsers(): List<UserEntity> = transaction { UserEntity.all() }.toList()
 
     /**
      * Gets a slack user from the database from a given github name. If either the user or the team doesn't exist
