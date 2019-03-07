@@ -34,7 +34,9 @@ import io.ktor.request.header
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
-import io.ktor.routing.*
+import io.ktor.routing.get
+import io.ktor.routing.post
+import io.ktor.routing.routing
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
@@ -75,51 +77,89 @@ fun main(args: Array<String>) {
 
 
 fun Application.main() {
-        install(DefaultHeaders)
-        install(Compression)
-        install(CallLogging)
-        install(ContentNegotiation) {
-            gson {
-                setDateFormat(DateFormat.LONG)
-                setPrettyPrinting()
-            }
+    install(DefaultHeaders)
+    install(Compression)
+    install(CallLogging)
+    install(ContentNegotiation) {
+        gson {
+            setDateFormat(DateFormat.LONG)
+            setPrettyPrinting()
         }
-        routing {
-            get(Config.Endpoint.ROOT) { call.respondText("Hermes") }
-            // TODO Better Static Serving
-            static(Config.Endpoint.ROOT) {
-                file(Config.StaticPages.REGISTER_USER_PAGE)
-                file(Config.StaticPages.REGISTER_TEAM_PAGE)
-                file(Config.StaticPages.INSTALL)
-            }
-
-            // Webhooks from Github
-            post(Config.Endpoint.WEBHOOK) { webhookPost(call) }
-
-            // Users
-            get(Config.Endpoint.USERS) { if (ensurePrivateApi(call)) { usersGet(call) } }
-            post(Config.Endpoint.USERS) { if (ensurePrivateApi(call)) { usersPost(call) } }
-            get(Config.Endpoint.REGISTER_USER) { if (ensurePrivateApi(call)) { registerUserGet(call) } }
-
-            // Teams
-            get(Config.Endpoint.TEAMS) { if (ensurePrivateApi(call)) { teamsGet(call) } }
-            post(Config.Endpoint.TEAMS) { if (ensurePrivateApi(call)) { teamsPost(call) } }
-            get(Config.Endpoint.REGISTER_TEAM) { if (ensurePrivateApi(call)) { registerTeamGet(call) } }
-
-            // ReviewRequests
-            get(Config.Endpoint.REVIEW_REQUESTS) { if (ensurePrivateApi(call)) { reviewRequestsGet(call) } }
-
-            //Reviews
-            get(Config.Endpoint.REVIEWS) { if (ensurePrivateApi(call)) { reviewsGet(call) } }
-
-            // Install Slack App
-            get(Config.Endpoint.INSTALL) { if (ensurePrivateApi(call)) { installGet(call) } }
-
-            // Handle Slack Slash Command
-            post(Config.Endpoint.SLACK) { if (ensurePrivateApi(call)) { slackPost(call) } }
+    }
+    routing {
+        get(Config.Endpoint.ROOT) { call.respondText("Hermes") }
+        // TODO Better Static Serving
+        static(Config.Endpoint.ROOT) {
+            file(Config.StaticPages.REGISTER_USER_PAGE)
+            file(Config.StaticPages.REGISTER_TEAM_PAGE)
+            file(Config.StaticPages.INSTALL)
         }
 
+        // Webhooks from Github
+        post(Config.Endpoint.WEBHOOK) { webhookPost(call) }
 
+        // Users
+        get(Config.Endpoint.USERS) {
+            if (ensurePrivateApi(call)) {
+                usersGet(call)
+            }
+        }
+        post(Config.Endpoint.USERS) {
+            if (ensurePrivateApi(call)) {
+                usersPost(call)
+            }
+        }
+        get(Config.Endpoint.REGISTER_USER) {
+            if (ensurePrivateApi(call)) {
+                registerUserGet(call)
+            }
+        }
+
+        // Teams
+        get(Config.Endpoint.TEAMS) {
+            if (ensurePrivateApi(call)) {
+                teamsGet(call)
+            }
+        }
+        post(Config.Endpoint.TEAMS) {
+            if (ensurePrivateApi(call)) {
+                teamsPost(call)
+            }
+        }
+        get(Config.Endpoint.REGISTER_TEAM) {
+            if (ensurePrivateApi(call)) {
+                registerTeamGet(call)
+            }
+        }
+
+        // ReviewRequests
+        get(Config.Endpoint.REVIEW_REQUESTS) {
+            if (ensurePrivateApi(call)) {
+                reviewRequestsGet(call)
+            }
+        }
+
+        //Reviews
+        get(Config.Endpoint.REVIEWS) {
+            if (ensurePrivateApi(call)) {
+                reviewsGet(call)
+            }
+        }
+
+        // Install Slack App
+        get(Config.Endpoint.INSTALL) {
+            if (ensurePrivateApi(call)) {
+                installGet(call)
+            }
+        }
+
+        // Handle Slack Slash Command
+        post(Config.Endpoint.SLACK) {
+            if (ensurePrivateApi(call)) {
+                slackPost(call)
+            }
+        }
+    }
 }
 
 private fun ensurePrivateApi(call: ApplicationCall): Boolean {
@@ -284,8 +324,8 @@ suspend fun reviewsGet(call: ApplicationCall) {
  */
 suspend fun installGet(call: ApplicationCall) {
     val (_, response, result) = Config.SLACK_AUTH_URL
-        .httpGet(createSlackQueryParams(call.request.queryParameters["code"]))
-        .responseObject<SlackAuth>()
+            .httpGet(createSlackQueryParams(call.request.queryParameters["code"]))
+            .responseObject<SlackAuth>()
 
     if (response.statusCode == HttpStatusCode.OK.value) {
         val (slackAuth, _) = result
@@ -296,11 +336,11 @@ suspend fun installGet(call: ApplicationCall) {
                 val config = Config.configData
                 // TODO Should there be specific setters?
                 Config.configData = ConfigData(
-                    webhook.url,
-                    config.serverPort,
-                    config.serverPortPrivate,
-                    config.adminChannel,
-                    config.rereview
+                        webhook.url,
+                        config.serverPort,
+                        config.serverPortPrivate,
+                        config.adminChannel,
+                        config.rereview
                 )
                 call.respondText("Admin Channel Registered", ContentType.Text.Plain, HttpStatusCode.OK)
             } else {
@@ -326,13 +366,13 @@ suspend fun slackPost(call: ApplicationCall) {
     val responseText = slackCommandHandler.handleSlashCommand(slashCommand, command, parameters)
     call.respond(HttpStatusCode.OK)
     Fuel
-        .post(slashCommand.responseUrl)
-        .body(Gson().toJson(SlashResponse.ephemeral(responseText)))
-        .response { _, response, result ->
-            println(response)
-            println(result)
-            //TODO Handle Response and Result
-        }
+            .post(slashCommand.responseUrl)
+            .body(Gson().toJson(SlashResponse.ephemeral(responseText)))
+            .response { _, response, result ->
+                println(response)
+                println(result)
+                //TODO Handle Response and Result
+            }
 }
 
 /**
@@ -340,7 +380,7 @@ suspend fun slackPost(call: ApplicationCall) {
  * @param code The code parameter to include in the query parameters
  */
 private fun createSlackQueryParams(code: String?): List<Pair<String, String>> = listOf(
-    "code" to code.toString(),
-    "client_id" to Config.authData.clientId,
-    "client_secret" to Config.authData.secret
+        "code" to code.toString(),
+        "client_id" to Config.authData.clientId,
+        "client_secret" to Config.authData.secret
 )

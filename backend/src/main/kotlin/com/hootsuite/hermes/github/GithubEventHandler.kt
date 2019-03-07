@@ -21,7 +21,7 @@ import com.hootsuite.hermes.slack.SlackMessageHandler
 /**
  * Class to handle events from Github webhooks
  */
-class GithubEventHandler(val dataStore: DataStore) {
+class GithubEventHandler(private val dataStore: DataStore) {
 
     /**
      * Route Pull Request Reviews to Slack

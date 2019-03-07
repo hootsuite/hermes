@@ -7,7 +7,7 @@ import com.hootsuite.hermes.slack.model.SlashCommand
 /**
  * Class to parse the incoming slash commands from slack
  */
-class SlashCommandHandler(val dataStore: DataStore) {
+class SlashCommandHandler(private val dataStore: DataStore) {
 
     /**
      * Handle an incoming Slash Command from slack and return a response String to send to the user
